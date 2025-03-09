@@ -355,7 +355,7 @@ void cpy_Newton(double* points, double* elements, double& dx) {
     }
 }
 
-void gpy_Newton(double* points, double* elements, double& dx) {
+void gpy_Newton(double* points, double* elements, double& dx, double* points_d, double* elements_d, double* vector_d, double* jacobian_d, double* inverse_jacobian_d, double* delta_d, double* vec_d) {
     dim3 blockDim(BLOCK_SIZE, 1, 1);
     int x_blocks_count = (MATRIX_SIZE + blockDim.x - 1) / blockDim.x;
     dim3 gridDim(x_blocks_count, MATRIX_SIZE, 1);
@@ -364,19 +364,14 @@ void gpy_Newton(double* points, double* elements, double& dx) {
     // VECTOR
     //
 
-    double* elements_d, * points_d;
     double* vector_h = new double[x_blocks_count * MATRIX_SIZE];
 
     double* vec = new double[MATRIX_SIZE];
-    double* vector_d;
 
     for (int i = 0; i < MATRIX_SIZE; i++) {
         vec[i] = 0;
     }
 
-    cudaMalloc((void**)&points_d, MATRIX_SIZE * sizeof(double));
-    cudaMalloc((void**)&elements_d, MATRIX_SIZE * MATRIX_SIZE * sizeof(double));
-    cudaMalloc((void**)&vector_d, x_blocks_count * MATRIX_SIZE * sizeof(double));
     cudaMemcpy(points_d, points, MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
     cudaMemcpy(elements_d, elements, MATRIX_SIZE * MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
     computeVec << <gridDim, blockDim, 2 * blockDim.x * sizeof(double) >> > (points_d, elements_d, vector_d, x_blocks_count);
@@ -399,8 +394,6 @@ void gpy_Newton(double* points, double* elements, double& dx) {
     //
 
     double* jacobian_h = new double[MATRIX_SIZE * MATRIX_SIZE];
-    double* jacobian_d;
-    cudaMalloc((void**)&jacobian_d, MATRIX_SIZE * MATRIX_SIZE * sizeof(double));
     compute_jacobian << <gridDim, blockDim, 2 * blockDim.x * sizeof(double) >> > (points_d, elements_d, jacobian_d);
     cudaMemcpy(jacobian_h, jacobian_d, MATRIX_SIZE * MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
@@ -416,13 +409,11 @@ void gpy_Newton(double* points, double* elements, double& dx) {
     // INVERSE JACOBIAN
     //
     double* inverse_jacobian = new double[MATRIX_SIZE * MATRIX_SIZE];
-    double* inverse_jacobian_d;
     for (int i = 0; i < MATRIX_SIZE; i++) {
         for (int j = 0; j < MATRIX_SIZE; j++) {
             inverse_jacobian[i * MATRIX_SIZE + j] = 0.0;
         }
     }
-    cudaMalloc((void**)&inverse_jacobian_d, MATRIX_SIZE * MATRIX_SIZE * sizeof(double));
     cublasInverse(jacobian_d, inverse_jacobian_d, inverse_jacobian);
     //cudaMemcpy(inverse_jacobian_d, inverse_jacobian, MATRIX_SIZE * MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 
@@ -439,15 +430,11 @@ void gpy_Newton(double* points, double* elements, double& dx) {
 
     double* delta = new double[MATRIX_SIZE];
     double* delta_h = new double[MATRIX_SIZE * x_blocks_count];
-    double* delta_d;
-    double* vec_d;
 
     for (int i = 0; i < MATRIX_SIZE; i++) {
         delta[i] = 0;
     }
 
-    cudaMalloc((void**)&delta_d, x_blocks_count * MATRIX_SIZE * sizeof(double));
-    cudaMalloc((void**)&vec_d, MATRIX_SIZE * sizeof(double));
     cudaMemcpy(vec_d, vec, MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
     computeDelta << <gridDim, blockDim, 2 * blockDim.x * sizeof(double) >> > (inverse_jacobian_d, vec_d, delta_d, x_blocks_count);
     cudaMemcpy(delta_h, delta_d, x_blocks_count * MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
@@ -489,9 +476,6 @@ int main() {
     double* jacobian_h = new double[MATRIX_SIZE * MATRIX_SIZE];
     double* points_h = new double[MATRIX_SIZE];
     double* points_h1 = new double[MATRIX_SIZE];
-
-    double* elements_d, * points_d, * jacobian_d;
-
 
     for (int i = 0; i < MATRIX_SIZE * MATRIX_SIZE; i++) {
         elements_h[i] = elements[i];
@@ -755,6 +739,18 @@ int main() {
     //
 
     std::cout << "\nGPU" << std::endl;
+    int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
+
+    double* elements_d, * points_d, * vector_d, * jacobian_d, * inverse_jacobian_d, * delta_d, * vec_d;
+
+    cudaMalloc((void**)&points_d, MATRIX_SIZE * sizeof(double));
+    cudaMalloc((void**)&elements_d, MATRIX_SIZE * MATRIX_SIZE * sizeof(double));
+    cudaMalloc((void**)&vector_d, x_blocks_count * MATRIX_SIZE * sizeof(double));
+    cudaMalloc((void**)&jacobian_d, MATRIX_SIZE * MATRIX_SIZE * sizeof(double));
+    cudaMalloc((void**)&inverse_jacobian_d, MATRIX_SIZE * MATRIX_SIZE * sizeof(double));
+    cudaMalloc((void**)&delta_d, x_blocks_count * MATRIX_SIZE * sizeof(double));
+    cudaMalloc((void**)&vec_d, MATRIX_SIZE * sizeof(double));
+
 
     for (int i = 0; i < MATRIX_SIZE * MATRIX_SIZE; i++) {
         elements_h[i] = elements[i];
@@ -770,7 +766,7 @@ int main() {
     cudaEventRecord(start);
     do {
         i++;
-        gpy_Newton(points_h1, elements_h, dx);;
+        gpy_Newton(points_h1, elements_h, dx, points_d, elements_d, vector_d, jacobian_d, inverse_jacobian_d, delta_d, vec_d);
     } while (dx > TOLERANCE);
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);

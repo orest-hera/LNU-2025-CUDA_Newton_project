@@ -11,6 +11,37 @@
 #define TOLERANCE 1e-6
 #define BLOCK_SIZE 64
 
+struct cublasInverseData {
+    cublasInverseData()
+    {
+        cudaMalloc((void**)&pivot, MATRIX_SIZE);
+        cudaMalloc((void**)&ajacobian_d, sizeof(double*));
+        cudaMalloc((void**)&ainverse_jacobian_d, sizeof(double*));
+        cudaMalloc((void**)&info, sizeof(int));
+
+        cublasCreate_v2(&cublasContextHandler);
+        ready_ = true;
+    }
+
+    ~cublasInverseData()
+    {
+        if (ready_)
+            cublasDestroy_v2(cublasContextHandler);
+
+        cudaFree(info);
+        cudaFree(ainverse_jacobian_d);
+        cudaFree(ajacobian_d);
+        cudaFree(pivot);
+    }
+
+    bool ready_{false};
+    cublasHandle_t cublasContextHandler;
+    int* pivot{nullptr};
+    int* info{nullptr};
+    double** ajacobian_d{nullptr};
+    double** ainverse_jacobian_d{nullptr};
+};
+
 __host__ void cpy_computeVec(double* points, double* elements, double* vec) {
     for (int i = 0; i < MATRIX_SIZE; i++) {
         for (int j = 0; j < MATRIX_SIZE; j++) {
@@ -182,31 +213,18 @@ __host__ void cpy_inverse(double* a, double* y, int n) {
 }
 
 void cublasInverse(double* jacobian, double* inverse_jacobian_d, double* inverse_jacobian_h) {
-    int* pivot;
-    int* info;
-    double** ajacobian_d;
-    double** ainverse_jacobian_d;
-    cudaMalloc((void**)&pivot, MATRIX_SIZE);
-    cudaMalloc((void**)&ajacobian_d, sizeof(double*));
-    cudaMalloc((void**)&ainverse_jacobian_d, sizeof(double*));
-    cudaMalloc((void**)&info, sizeof(int));
+    cublasInverseData d;
 
-    cudaMemcpy(ajacobian_d, &jacobian, sizeof(double*), cudaMemcpyHostToDevice);
-    cudaMemcpy(ainverse_jacobian_d, &inverse_jacobian_d, sizeof(double*), cudaMemcpyHostToDevice);
+    cudaMemcpy(d.ajacobian_d, &jacobian, sizeof(double*), cudaMemcpyHostToDevice);
+    cudaMemcpy(d.ainverse_jacobian_d, &inverse_jacobian_d, sizeof(double*), cudaMemcpyHostToDevice);
 
-    cublasHandle_t cublasContextHandler;
-    cublasCreate_v2(&cublasContextHandler);
 
-    cublasDgetrfBatched(cublasContextHandler, MATRIX_SIZE, ajacobian_d, MATRIX_SIZE, pivot, info, 1);
-    cublasDgetriBatched(cublasContextHandler, MATRIX_SIZE, (const double**)ajacobian_d, MATRIX_SIZE, pivot, ainverse_jacobian_d, MATRIX_SIZE, info, 1);
 
-    cudaMemcpy(inverse_jacobian_h, inverse_jacobian_d, MATRIX_SIZE * MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
+    cublasDgetrfBatched(d.cublasContextHandler, MATRIX_SIZE, d.ajacobian_d, MATRIX_SIZE, d.pivot, d.info, 1);
+    cublasDgetriBatched(d.cublasContextHandler, MATRIX_SIZE, (const double**)d.ajacobian_d,
+                        MATRIX_SIZE, d.pivot, d.ainverse_jacobian_d, MATRIX_SIZE, d.info, 1);
 
-    cublasDestroy_v2(cublasContextHandler);
-    cudaFree(pivot);
-    cudaFree(ajacobian_d);
-    cudaFree(ainverse_jacobian_d);
-    cudaFree(info);
+    cudaMemcpy(inverse_jacobian_h, inverse_jacobian_d, MATRIX_SIZE * MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);    
 }
 
 __host__ void cpy_computeDelta(double* inv_jacobian, double* vec, double* delta) {

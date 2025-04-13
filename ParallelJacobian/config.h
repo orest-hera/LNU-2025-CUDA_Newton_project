@@ -9,4 +9,4 @@
 #define TOTAL_ELASPED_TIME
 
 //#define COPY_ACTION
-#define PINNED_MEMORY
+//#define PINNED_MEMORY

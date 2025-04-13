@@ -12,18 +12,14 @@ __global__ void gpu_compute_func_and_delta_values(double* points_d, double* inde
     extern __shared__ double shared_points[];
 
     if (gidx < MATRIX_SIZE) {
-        shared_points[threadIdx.x] = points_d[gidx];
-        shared_points[threadIdx.x + blockDim.x] = indexes_d[gidy * MATRIX_SIZE + gidx];
+        shared_points[threadIdx.x] = points_d[gidx] * indexes_d[gidy * MATRIX_SIZE + gidx];
         //printf("points: %f %f\n", shared_points[threadIdx.x], shared_points[threadIdx.x + blockDim.x]);
     }
     else {
         shared_points[threadIdx.x] = 0.0;
-        shared_points[threadIdx.x + blockDim.x] = 0.0;
     }
     __syncthreads();
 
-    shared_points[tidx] *= shared_points[tidx + blockDim.x];
-    __syncthreads();
 
     if (BLOCK_SIZE >= 1024 && threadIdx.x < 512) {
         shared_points[threadIdx.x] += shared_points[threadIdx.x + 512];
@@ -184,7 +180,7 @@ void NewtonSolver::gpu_newton_solve() {
         auto start = std::chrono::high_resolution_clock::now();
 #endif
 
-        gpu_compute_func_and_delta_values << <gridDim, blockDim, 2 * blockDim.x * sizeof(double) >> > (
+        gpu_compute_func_and_delta_values << <gridDim, blockDim, blockDim.x * sizeof(double) >> > (
             data->points_d, data->indexes_d, data->intermediate_funcs_value_d);
         cudaDeviceSynchronize();
 
@@ -196,6 +192,7 @@ void NewtonSolver::gpu_newton_solve() {
                 data->funcs_value_h[i] += data->intermediate_funcs_value_h[i * x_blocks_count + j];
             }
         }
+        cudaMemcpy(data->funcs_value_d, data->funcs_value_h, MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 
 #ifdef INTERMEDIATE_RESULTS
         auto end = std::chrono::high_resolution_clock::now();
@@ -214,18 +211,17 @@ void NewtonSolver::gpu_newton_solve() {
         data->intermediate_results[1] = std::chrono::duration<double>(end - start).count();
         start = std::chrono::high_resolution_clock::now();
 #endif
-        //gpu_cublasInverse(data);
-        //cudaMemcpy(data->inverse_jacobian_d, data->inverse_jacobian_h, MATRIX_SIZE * MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
-		gpu_inverse(data->jacobian_d, data->inverse_jacobian_d);
+        gpu_cublasInverse(data);
+		//gpu_inverse(data->jacobian_d, data->inverse_jacobian_d);
 #ifdef INTERMEDIATE_RESULTS
         end = std::chrono::high_resolution_clock::now();
         data->intermediate_results[2] = std::chrono::duration<double>(end - start).count();
         start = std::chrono::high_resolution_clock::now();
 #endif
 
-        cudaMemcpy(data->funcs_value_d, data->funcs_value_h, MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
+        //cudaMemcpy(data->funcs_value_d, data->funcs_value_h, MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 
-        gpu_compute_func_and_delta_values << <gridDim, blockDim, 2 * blockDim.x * sizeof(double) >> > (
+        gpu_compute_func_and_delta_values << <gridDim, blockDim, blockDim.x * sizeof(double) >> > (
             data->funcs_value_d, data->inverse_jacobian_d, data->delta_d);
         cudaDeviceSynchronize();
 

@@ -3,7 +3,6 @@
 #include "iostream"
 #include "math.h"
 #include "vector"
-#include "cublas.h"
 #include "DataInitializer.h"
 #include "NewtonSolver.h"
 #include "memory"

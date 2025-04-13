@@ -21,6 +21,11 @@ DataInitializer::DataInitializer() {
     cudaMalloc((void**)&cublas_info, sizeof(int));
     cudaMalloc((void**)&cublas_ajacobian_d, sizeof(double*));
     cudaMalloc((void**)&cublas_ainverse_jacobian_d, sizeof(double*));
+
+    cublasCreate_v2(&cublasContextHandler);
+    cudaMemcpy(cublas_ajacobian_d, &jacobian_d, sizeof(double*), cudaMemcpyHostToDevice);
+    cudaMemcpy(cublas_ainverse_jacobian_d, &inverse_jacobian_d, sizeof(double*), cudaMemcpyHostToDevice);
+
 #endif
 
 #ifdef PINNED_MEMORY

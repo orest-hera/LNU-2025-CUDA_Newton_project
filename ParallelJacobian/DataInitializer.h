@@ -1,6 +1,7 @@
 #pragma once
 #include "vector"
 #include "config.h"
+#include "cublas_v2.h"
 
 #define MATRIX_SIZE 1000
 #define BLOCK_SIZE 128
@@ -29,6 +30,7 @@ public:
 		* funcs_value_d{ nullptr };
 	int* cublas_pivot{ nullptr }, * cublas_info{ nullptr };
 	double** cublas_ajacobian_d{ nullptr }, ** cublas_ainverse_jacobian_d{ nullptr };
+	cublasHandle_t cublasContextHandler;
 #endif
 
 #ifdef INTERMEDIATE_RESULTS

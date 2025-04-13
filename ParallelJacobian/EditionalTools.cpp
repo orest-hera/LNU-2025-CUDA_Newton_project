@@ -8,7 +8,7 @@ void tools::generate_initial_indexes_matrix_and_vector_b(double* matrix, double*
 	double sum = 0;
 	for (int i = 0; i < MATRIX_SIZE; i++) {
 
-		b[i] = 1;
+		b[i] = 10;
 
 		value = 0;
 		sum = 0;
@@ -54,5 +54,5 @@ void tools::generate_sparse_initial_indexes_matrix_and_vector_b(double* matrix, 
 
 
 double tools::calculate_index_xn(double index, double x) {
-	return index * x;
+	return index * x * x * x;
 }

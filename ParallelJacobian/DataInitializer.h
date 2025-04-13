@@ -2,7 +2,7 @@
 #include "vector"
 #include "config.h"
 
-#define MATRIX_SIZE 100
+#define MATRIX_SIZE 1000
 #define BLOCK_SIZE 128
 #define EQURENCY 1e-7
 #define TOLERANCE 1e-6

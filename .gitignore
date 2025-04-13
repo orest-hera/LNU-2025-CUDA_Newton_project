@@ -1,67 +1,71 @@
 # Build results
-[Bb]in/
-[Oo]bj/
-*.exe
-*.dll
-*.lib
-*.pdb
-*.ipch
-*.iobj
-*.idb
-*.opendb
-*.cache
-*.ilk
+ParallelJacobian/[Bb]in/
+ParallelJacobian/[Oo]bj/
+ParallelJacobian/*.exe
+ParallelJacobian/*.dll
+ParallelJacobian/*.lib
+ParallelJacobian/*.pdb
+ParallelJacobian/*.ipch
+ParallelJacobian/*.iobj
+ParallelJacobian/*.idb
+ParallelJacobian/*.opendb
+ParallelJacobian/*.cache
+ParallelJacobian/*.ilk
 
 # User-specific files
-*.user
-*.userosscache
-*.suo
-*.sdf
-*.sln.docstates
+ParallelJacobian/*.user
+ParallelJacobian/*.userosscache
+ParallelJacobian/*.suo
+ParallelJacobian/*.sdf
+ParallelJacobian/*.sln.docstates
+
+ParallelJacobian/ParallelJacobian/
+ParallelJacobian/x64/
+ParallelJacobian/ParallelJacobian.vcxproj
 
 # Visual Studio specific folders
-.vs/
-.vscode/
+ParallelJacobian/.vs/
+ParallelJacobian/.vscode/
 
-# CMake build folders (якщо використовуєш CMake)
-build/
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-Makefile
+# CMake build folders
+ParallelJacobian/build/
+ParallelJacobian/CMakeFiles/
+ParallelJacobian/CMakeCache.txt
+ParallelJacobian/cmake_install.cmake
+ParallelJacobian/Makefile
 
-# CUDA temp files (якщо працюєш з CUDA)
-*.cu.cpp
-*.cu.obj
-*.cubin
-*.ptx
+# CUDA temp files
+ParallelJacobian/*.cu.cpp
+ParallelJacobian/*.cu.obj
+ParallelJacobian/*.cubin
+ParallelJacobian/*.ptx
 
 # Logs and debug
-*.log
-*.tlog/
-*.lastbuildstate
+ParallelJacobian/*.log
+ParallelJacobian/*.tlog/
+ParallelJacobian/*.lastbuildstate
 
 # Others
-*.ncb
-*.aps
-*.db
-*.VC.db
-*.VC.VC.opendb
+ParallelJacobian/*.ncb
+ParallelJacobian/*.aps
+ParallelJacobian/*.db
+ParallelJacobian/*.VC.db
+ParallelJacobian/*.VC.VC.opendb
 
 # Backup files
-*~
-*.bak
-*.orig
-*.tmp
+ParallelJacobian/*~
+ParallelJacobian/*.bak
+ParallelJacobian/*.orig
+ParallelJacobian/*.tmp
 
 # Crash dumps
-*.dmp
+ParallelJacobian/*.dmp
 
 # Results of tests
-test_results/
+ParallelJacobian/test_results/
 
 # Ignore generated output
-*.out
+ParallelJacobian/*.out
 
-# Ignore solution-wide packages (NuGet, etc)
-packages/
+# Ignore solution-wide packages
+ParallelJacobian/packages/

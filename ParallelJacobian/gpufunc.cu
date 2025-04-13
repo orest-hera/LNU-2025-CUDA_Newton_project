@@ -50,17 +50,18 @@ __global__ void gpu_compute_func_and_delta_values(double* points_d, double* inde
     }
 
     __syncthreads();
+
     if (threadIdx.x < 32) {
-        shared_points[threadIdx.x] += shared_points[threadIdx.x + 16]; __syncwarp();
-        shared_points[threadIdx.x] += shared_points[threadIdx.x + 8]; __syncwarp();
-        shared_points[threadIdx.x] += shared_points[threadIdx.x + 4]; __syncwarp();
-        shared_points[threadIdx.x] += shared_points[threadIdx.x + 2]; __syncwarp();
-        shared_points[threadIdx.x] += shared_points[threadIdx.x + 1]; __syncwarp();
-    }
-    __syncthreads();
-    if (tidx == 0) {
-        vec_d[gidy * x_blocks_count + blockIdx.x] = shared_points[threadIdx.x];
-        //printf("%f\n", vec_d[gidy * x_blocks_count + blockIdx.x]);
+        double sum = shared_points[threadIdx.x];
+        sum += __shfl_down_sync(SHAFFLE_CONST, sum, 16);
+        sum += __shfl_down_sync(SHAFFLE_CONST, sum, 8);
+        sum += __shfl_down_sync(SHAFFLE_CONST, sum, 4);
+        sum += __shfl_down_sync(SHAFFLE_CONST, sum, 2);
+        sum += __shfl_down_sync(SHAFFLE_CONST, sum, 1);
+
+        if (threadIdx.x == 0) {
+            vec_d[gidy * x_blocks_count + blockIdx.x] = sum;
+        }
     }
 }
 
@@ -155,7 +156,17 @@ void gpu_inverse(double* jacobian_d, double* inverse_jacobian_d) {
     }
 }
 
+__global__ void gpu_dummy_warmup() {
+    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+    if (idx < 32) {
+        // нічого особливого, просто зайняти трохи GPU
+        double tmp = idx * 0.1;
+    }
+}
+
 void NewtonSolver::gpu_newton_solve() {
+    gpu_dummy_warmup << <1, 32 >> > ();
+    cudaDeviceSynchronize();
     std::cout << "GPU Newton solver\n";
     int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
     int iterations_count = 0;
@@ -220,7 +231,6 @@ void NewtonSolver::gpu_newton_solve() {
 #endif
 
         //cudaMemcpy(data->funcs_value_d, data->funcs_value_h, MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
-
         gpu_compute_func_and_delta_values << <gridDim, blockDim, blockDim.x * sizeof(double) >> > (
             data->funcs_value_d, data->inverse_jacobian_d, data->delta_d);
         cudaDeviceSynchronize();

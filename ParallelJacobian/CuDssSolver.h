@@ -23,6 +23,6 @@ public:
 	int non_zero_count{ 0 };
 
 	CuDssSolver();
-	//~CuDssSolver();
+	~CuDssSolver();
 	void solve();
 };

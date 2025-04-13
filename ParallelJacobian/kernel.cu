@@ -8,6 +8,7 @@
 #include "NewtonSolver.h"
 #include "memory"
 #include "config.h"
+#include "CuDssSolver.h"
 
 int main() {
 
@@ -32,6 +33,11 @@ int main() {
         newton_solver2->gpu_newton_solve();
     }
 #endif
-
+#ifdef CUDSS_SOLVER
+    {
+        std::unique_ptr<CuDssSolver> cuDssSolver = std::make_unique<CuDssSolver>();
+        cuDssSolver->solve();
+    }
+#endif
     return 0;
 }

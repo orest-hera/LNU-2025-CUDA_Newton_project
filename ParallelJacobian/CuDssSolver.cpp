@@ -30,6 +30,20 @@ CuDssSolver::CuDssSolver() {
 	cudaMemcpy(vector_b_d, vector_b_h, MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 }
 
+CuDssSolver::~CuDssSolver() {
+	delete[] matrix_A;
+	delete[] vector_b_h;
+	delete[] csr_cols_h;
+	delete[] csr_rows_h;
+	delete[] csr_values_h;
+	delete[] vector_x_h;
+	cudaFree(vector_x_d);
+	cudaFree(vector_b_d);
+	cudaFree(csr_values_d);
+	cudaFree(csr_rows_d);
+	cudaFree(csr_cols_d);
+}
+
 int CuDssSolver::count_non_zero_elements(double* matrix_A) {
 	int non_zero_count = 0;
 	for (int i = 0; i < MATRIX_SIZE * MATRIX_SIZE; i++) {

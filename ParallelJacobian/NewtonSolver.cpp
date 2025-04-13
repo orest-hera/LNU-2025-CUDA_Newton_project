@@ -1,7 +1,7 @@
-#include "math.h"
+﻿#include "math.h"
 #include <iostream>
-#include<algorithm>
-#include "cublas.h"
+#include <algorithm>
+#include <cusolverDn.h>
 #include "NewtonSolver.h"
 #include "EditionalTools.h"
 #include "cuda_runtime.h"
@@ -180,17 +180,74 @@ void NewtonSolver::cpu_newton_solve() {
 //
 
 #ifdef GPU_SOLVER
+//void gpu_cusolverInverse(DataInitializer* data) {
+//    cusolverDnHandle_t cusolverH;
+//    cusolverDnCreate(&cusolverH);
+//
+//    int work_size = 0;
+//    int* dev_info;
+//    cudaMalloc((void**)&dev_info, sizeof(int));
+//
+//    cusolverDnDgetrf_bufferSize(
+//        cusolverH,
+//        MATRIX_SIZE,
+//        MATRIX_SIZE,
+//        data->jacobian_d,
+//        MATRIX_SIZE,
+//        &work_size
+//    );
+//
+//    double* d_work;
+//    cudaMalloc((void**)&d_work, work_size * sizeof(double));
+//
+//    double* d_LU;
+//    cudaMalloc((void**)&d_LU, MATRIX_SIZE * MATRIX_SIZE * sizeof(double));
+//    cudaMemcpy(d_LU, data->jacobian_d, MATRIX_SIZE * MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToDevice);
+//
+//    int* d_pivot;
+//    cudaMalloc((void**)&d_pivot, MATRIX_SIZE * sizeof(int));
+//
+//    cusolverDnDgetrf(
+//        cusolverH,
+//        MATRIX_SIZE,
+//        MATRIX_SIZE,
+//        d_LU,
+//        MATRIX_SIZE,
+//        d_work,
+//        d_pivot,
+//        dev_info
+//    );
+//
+//    cudaMemset(data->inverse_jacobian_d, 0, MATRIX_SIZE * MATRIX_SIZE * sizeof(double));
+//    double temp = 1;
+//    for (int i = 0; i < MATRIX_SIZE; i++) {
+//        cudaMemcpy(data->inverse_jacobian_d + i * MATRIX_SIZE + i, &temp, sizeof(double), cudaMemcpyHostToDevice);
+//    }
+//
+//    cusolverDnDgetrs(
+//        cusolverH,
+//        CUBLAS_OP_N,
+//        MATRIX_SIZE,
+//        MATRIX_SIZE,
+//        d_LU,
+//        MATRIX_SIZE,
+//        d_pivot,
+//        data->inverse_jacobian_d,
+//        MATRIX_SIZE,
+//        dev_info
+//    );
+//
+//    cudaFree(d_work);
+//    cudaFree(d_pivot);
+//    cudaFree(d_LU);
+//    cudaFree(dev_info);
+//
+//    cusolverDnDestroy(cusolverH);
+//}
+
 void gpu_cublasInverse(DataInitializer* data) {
-    cudaMemcpy(data->cublas_ajacobian_d, &data->jacobian_d, sizeof(double*), cudaMemcpyHostToDevice);
-    cudaMemcpy(data->cublas_ainverse_jacobian_d, &data->inverse_jacobian_d, sizeof(double*), cudaMemcpyHostToDevice);
-
-    cublasHandle_t cublasContextHandler;
-    cublasCreate_v2(&cublasContextHandler);
-
-    cublasStatus_t status2 = cublasDgetrfBatched(cublasContextHandler, MATRIX_SIZE, data->cublas_ajacobian_d, MATRIX_SIZE, data->cublas_pivot, data->cublas_info, 1);
-    cublasStatus_t status = cublasDgetriBatched(cublasContextHandler, MATRIX_SIZE, (const double**)data->cublas_ajacobian_d, MATRIX_SIZE, data->cublas_pivot, data->cublas_ainverse_jacobian_d, MATRIX_SIZE, data->cublas_info, 1);
-
-    cudaMemcpy(data->inverse_jacobian_h, data->inverse_jacobian_d, MATRIX_SIZE * MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
+    cublasStatus_t status2 = cublasDgetrfBatched(data->cublasContextHandler, MATRIX_SIZE, data->cublas_ajacobian_d, MATRIX_SIZE, data->cublas_pivot, data->cublas_info, 1);
+    cublasStatus_t status = cublasDgetriBatched(data->cublasContextHandler, MATRIX_SIZE, (const double**)data->cublas_ajacobian_d, MATRIX_SIZE, data->cublas_pivot, data->cublas_ainverse_jacobian_d, MATRIX_SIZE, data->cublas_info, 1);
 }
 #endif
 

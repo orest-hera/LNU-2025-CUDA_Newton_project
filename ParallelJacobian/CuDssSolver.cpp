@@ -3,6 +3,7 @@
 #include "CuDssSolver.h"
 #include "EditionalTools.h"
 #include "DataInitializer.h"
+#include "chrono"
 
 CuDssSolver::CuDssSolver() {
 	matrix_A = new double[MATRIX_SIZE * MATRIX_SIZE];
@@ -70,6 +71,7 @@ void CuDssSolver::parse_to_csr(int* csr_cols, int* csr_rows, double* csr_values,
 }
 
 void CuDssSolver::solve(){
+	auto start = std::chrono::high_resolution_clock::now();
 	cudssHandle_t handler;
 	cudssConfig_t solverConfig;
 	cudssData_t solverData;
@@ -103,7 +105,10 @@ void CuDssSolver::solve(){
 
 	cudaMemcpy(vector_x_h, vector_x_d, MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
 
+	auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> elapsed = end - start;
 	for (int i = 0; i < MATRIX_SIZE; ++i) {
 		std::cout << vector_x_h[i] << std::endl;
 	}
+	std::cout << "Elapsed time: " << elapsed.count() << " seconds" << std::endl;
 }

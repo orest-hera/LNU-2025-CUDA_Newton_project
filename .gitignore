@@ -21,7 +21,6 @@ ParallelJacobian/*.sln.docstates
 
 ParallelJacobian/ParallelJacobian/
 ParallelJacobian/x64/
-ParallelJacobian/ParallelJacobian.vcxproj
 
 # Visual Studio specific folders
 ParallelJacobian/.vs/

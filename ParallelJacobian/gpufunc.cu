@@ -1,6 +1,7 @@
 ﻿#include "NewtonSolver.h"
 #include "stdio.h"
 #include <iostream>
+#include "FileOperations.h"
 
 #ifdef GPU_SOLVER
 __global__ void gpu_compute_func_and_delta_values(double* points_d, double* indexes_d, double* vec_d) {
@@ -165,6 +166,10 @@ __global__ void gpu_dummy_warmup() {
 }
 
 void NewtonSolver::gpu_newton_solve() {
+    FileOperations* file_op = new FileOperations();
+	file_op->create_file("gpu_newton_solver.csv", 5);
+    file_op->append_file_headers("func_value_t,jacobian_value_t,inverse_jacobian_t,delta_value_t,update_points_t");
+
     gpu_dummy_warmup << <1, 32 >> > ();
     cudaDeviceSynchronize();
     std::cout << "GPU Newton solver\n";
@@ -273,9 +278,9 @@ void NewtonSolver::gpu_newton_solve() {
 		std::cout << "Error (dx): " << dx << "\n";
         std::cout << "===============================================================\n";
 #endif
-
+        file_op->append_file_data(data->intermediate_results);
     } while (dx > TOLERANCE);
-
+	file_op->close_file();
 #ifdef TOTAL_ELASPED_TIME
     auto end_total = std::chrono::high_resolution_clock::now();
     data->total_elapsed_time = std::chrono::duration<double>(end_total - start_total).count();

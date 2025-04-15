@@ -90,12 +90,14 @@
     <ClCompile Include="CuDssSolver.cpp" />
     <ClCompile Include="DataInitializer.cpp" />
     <ClCompile Include="EditionalTools.cpp" />
+    <ClCompile Include="FileOperations.cpp" />
     <ClCompile Include="NewtonSolver.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CuDssSolver.h" />
     <ClInclude Include="DataInitializer.h" />
     <ClInclude Include="EditionalTools.h" />
+    <ClInclude Include="FileOperations.h" />
     <ClInclude Include="NewtonSolver.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -84,7 +84,7 @@ void NewtonSolver::cpu_compute_delta() {
     for (int i = 0; i < data->MATRIX_SIZE; i++) {
         data->delta_h[i] = 0.0;
         for (int j = 0; j < data->MATRIX_SIZE; j++) {
-            data->delta_h[i] -= data->inverse_jacobian_h[i * data->MATRIX_SIZE + j] * data->funcs_value_h[j];
+            data->delta_h[i] -= tools::calculate_index_xn(data->inverse_jacobian_h[i * data->MATRIX_SIZE + j], data->funcs_value_h[j]);
         }
     }
 }

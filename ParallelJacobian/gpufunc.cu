@@ -1,6 +1,7 @@
 ﻿#include "NewtonSolver.h"
 #include "stdio.h"
 #include <iostream>
+#include <string>
 #include "FileOperations.h"
 
 #ifdef GPU_SOLVER
@@ -167,7 +168,8 @@ __global__ void gpu_dummy_warmup() {
 
 void NewtonSolver::gpu_newton_solve() {
     FileOperations* file_op = new FileOperations();
-	file_op->create_file("gpu_newton_solver.csv", 5);
+	std::string file_name = "gpu_newton_solver_" + std::to_string(data->MATRIX_SIZE) + ".csv";
+	file_op->create_file(file_name, 5);
     file_op->append_file_headers("func_value_t,jacobian_value_t,inverse_jacobian_t,delta_value_t,update_points_t");
 
     gpu_dummy_warmup << <1, 32 >> > ();

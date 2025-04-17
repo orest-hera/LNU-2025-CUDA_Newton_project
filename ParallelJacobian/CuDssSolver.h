@@ -25,5 +25,5 @@ public:
 
 	CuDssSolver(int MATRIX_SIZE);
 	~CuDssSolver();
-	void solve();
+	double solve();
 };

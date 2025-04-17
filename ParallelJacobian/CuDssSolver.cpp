@@ -3,6 +3,7 @@
 #include "CuDssSolver.h"
 #include "EditionalTools.h"
 #include "DataInitializer.h"
+#include "FileOperations.h"
 #include "chrono"
 
 CuDssSolver::CuDssSolver(int MATRIX_SIZE) {
@@ -71,7 +72,7 @@ void CuDssSolver::parse_to_csr(int* csr_cols, int* csr_rows, double* csr_values,
 	}
 }
 
-void CuDssSolver::solve(){
+double CuDssSolver::solve(){
 	auto start = std::chrono::high_resolution_clock::now();
 	cudssHandle_t handler;
 	cudssConfig_t solverConfig;
@@ -112,4 +113,5 @@ void CuDssSolver::solve(){
 		std::cout << vector_x_h[i] << std::endl;
 	}
 	std::cout << "Elapsed time: " << elapsed.count() << " seconds" << std::endl;
+	return elapsed.count();
 }

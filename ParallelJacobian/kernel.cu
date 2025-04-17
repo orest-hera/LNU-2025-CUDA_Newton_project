@@ -8,6 +8,7 @@
 #include "memory"
 #include "config.h"
 #include "CuDssSolver.h"
+#include "FileOperations.h"
 #include <cstdlib>
 
 int main(int argc, char* argv[]) {
@@ -27,34 +28,42 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    int iteration = 0;
+    FileOperations* file_op = new FileOperations();
+    std::string header = "CPU,GPU,cuDSS,matrix_size";
+    file_op->create_file("total_statistic.csv", 3);
+	file_op->append_file_headers(header);
+	std::vector<double> row(3);
     for (int size = matrix_size_min; size <= matrix_size_max; size += stride) {
         //
         // CPY
         //
-#ifdef CPU_SOLVER
+#if 0
         {
             std::unique_ptr<DataInitializer> data = std::make_unique<DataInitializer>(size);
             std::unique_ptr<NewtonSolver> newton_solver = std::make_unique<NewtonSolver>(data.get());
             newton_solver->cpu_newton_solve();
+			row[0] = data->total_elapsed_time;
         }
 #endif
+        row[0] = 0;
 
         //
         // GPU
         //
-#ifdef GPU_SOLVER
         {
             std::unique_ptr<DataInitializer> data2 = std::make_unique<DataInitializer>(size);
             std::unique_ptr<NewtonSolver> newton_solver2 = std::make_unique<NewtonSolver>(data2.get());
             newton_solver2->gpu_newton_solve();
+			row[1] = data2->total_elapsed_time;
         }
-#endif
-#ifdef CUDSS_SOLVER
+
         {
             std::unique_ptr<CuDssSolver> cuDssSolver = std::make_unique<CuDssSolver>(size);
-            cuDssSolver->solve();
+            double elapsed_time = cuDssSolver->solve();
+			row[2] = elapsed_time;
         }
-#endif
+		file_op->append_file_data(row, size);
     }
     return 0;
 }

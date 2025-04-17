@@ -170,7 +170,7 @@ void NewtonSolver::gpu_newton_solve() {
     FileOperations* file_op = new FileOperations();
 	std::string file_name = "gpu_newton_solver_" + std::to_string(data->MATRIX_SIZE) + ".csv";
 	file_op->create_file(file_name, 5);
-    file_op->append_file_headers("func_value_t,jacobian_value_t,inverse_jacobian_t,delta_value_t,update_points_t");
+    file_op->append_file_headers("func_value_t,jacobian_value_t,inverse_jacobian_t,delta_value_t,update_points_t,matrix_size");
 
     gpu_dummy_warmup << <1, 32 >> > ();
     cudaDeviceSynchronize();
@@ -184,9 +184,7 @@ void NewtonSolver::gpu_newton_solve() {
 
     double* delta = new double[data->MATRIX_SIZE];
 
-#ifdef TOTAL_ELASPED_TIME
     auto start_total = std::chrono::high_resolution_clock::now();
-#endif
 
     cudaMemcpy(data->points_d, data->points_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
     cudaMemcpy(data->indexes_d, data->indexes_h, data->MATRIX_SIZE * data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
@@ -280,13 +278,13 @@ void NewtonSolver::gpu_newton_solve() {
 		std::cout << "Error (dx): " << dx << "\n";
         std::cout << "===============================================================\n";
 #endif
-        file_op->append_file_data(data->intermediate_results);
+        file_op->append_file_data(data->intermediate_results, data->MATRIX_SIZE);
     } while (dx > TOLERANCE);
 	file_op->close_file();
-#ifdef TOTAL_ELASPED_TIME
+
     auto end_total = std::chrono::high_resolution_clock::now();
     data->total_elapsed_time = std::chrono::duration<double>(end_total - start_total).count();
-#endif
+
 
     print_solution(iterations_count, data->points_h);
     delete[] delta;

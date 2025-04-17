@@ -30,17 +30,12 @@ void FileOperations::append_file_headers(std::string headers) {
 	}
 }
 
-void FileOperations::append_file_data(std::vector<double> row) {
+void FileOperations::append_file_data(std::vector<double> row, int MATRIX_SIZE) {
 	if (isFileExist) {
 		for (int i = 0; i < number_of_columns; i++) {
-			my_file << row[i];
-			if (i != number_of_columns - 1) {
-				my_file << ",";
-			}
-			else {
-				my_file << "\n";
-			}
+			my_file << row[i] << ",";
 		}
+		my_file << MATRIX_SIZE << "\n";
 		std::cout << "Data appended to file." << std::endl;
 	}
 }

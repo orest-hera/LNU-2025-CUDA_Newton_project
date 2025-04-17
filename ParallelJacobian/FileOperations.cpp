@@ -8,7 +8,8 @@ FileOperations::FileOperations() {
 
 void FileOperations::create_file(std::string file_name, int number_of_columns) {
 	if (!isFileExist) {
-		my_file.open(file_name);
+		std::string file_path = "./results/" + file_name;
+		my_file.open(file_path);
 		std::cout << "File created: " << file_name << std::endl;
 		isFileExist = true;
 		this->number_of_columns = number_of_columns;

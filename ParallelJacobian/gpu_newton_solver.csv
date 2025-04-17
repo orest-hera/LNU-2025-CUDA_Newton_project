@@ -1,4 +1,0 @@
-func_value_t,jacobian_value_t,inverse_jacobian_t,delta_value_t,update_points_t
-0.0013913,0.134099,0.154662,0.448522,4.49e-05
-0.0010241,0.104481,5.04e-05,0.60156,2.32e-05
-0.0009104,0.104012,3.85e-05,0.600394,2.07e-05

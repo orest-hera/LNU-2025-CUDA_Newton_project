@@ -2,6 +2,7 @@
 
 class CuDssSolver {
 private:
+	int MATRIX_SIZE{ 0 };
 	int count_non_zero_elements(double* matrix_A);
 	void parse_to_csr(int* csr_cols, int* csr_rows, double* csr_values, double* matrix_A);
 public:
@@ -22,7 +23,7 @@ public:
 
 	int non_zero_count{ 0 };
 
-	CuDssSolver();
+	CuDssSolver(int MATRIX_SIZE);
 	~CuDssSolver();
 	void solve();
 };

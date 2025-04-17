@@ -3,7 +3,6 @@
 #include "config.h"
 #include "cublas_v2.h"
 
-#define MATRIX_SIZE 1000
 #define BLOCK_SIZE 128
 #define EQURENCY 1e-7
 #define TOLERANCE 1e-6
@@ -11,6 +10,8 @@
 
 struct DataInitializer {
 public:
+	int MATRIX_SIZE{ 0 };
+
 	double* indexes_h{ nullptr },
 		* points_h{ nullptr },
 		* intermediate_funcs_value_h{ nullptr },
@@ -44,7 +45,7 @@ public:
 
 	void initialize_indexes_matrix_and_b();
  
-	DataInitializer();
+	DataInitializer(int MATRIX_SIZE);
 	~DataInitializer();
 
 	friend struct NewtonSolver;

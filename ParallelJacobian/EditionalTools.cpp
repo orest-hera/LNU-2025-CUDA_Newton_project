@@ -3,7 +3,7 @@
 #include "time.h"
 #include "stdlib.h"
 
-void tools::generate_initial_indexes_matrix_and_vector_b(double* matrix, double* b) {
+void tools::generate_initial_indexes_matrix_and_vector_b(double* matrix, double* b, int MATRIX_SIZE) {
 	int value = 0;
 	double sum = 0;
 	for (int i = 0; i < MATRIX_SIZE; i++) {
@@ -20,7 +20,7 @@ void tools::generate_initial_indexes_matrix_and_vector_b(double* matrix, double*
 	}
 }
 
-void tools::generate_sparse_initial_indexes_matrix_and_vector_b(double* matrix, double* b, int zeros_per_row) {
+void tools::generate_sparse_initial_indexes_matrix_and_vector_b(double* matrix, double* b, int zeros_per_row, int MATRIX_SIZE) {
     for (int i = 0; i < MATRIX_SIZE; i++) {
         b[i] = 1;
 
@@ -29,7 +29,8 @@ void tools::generate_sparse_initial_indexes_matrix_and_vector_b(double* matrix, 
             matrix[i * MATRIX_SIZE + j] = static_cast<double>(rand()) / RAND_MAX;
             sum += matrix[i * MATRIX_SIZE + j];
         }
-        bool zeroed[MATRIX_SIZE] = { false };
+        bool *zeroed = new bool[MATRIX_SIZE];
+        zeroed[0] = false;
 
         int zeros_set = 0;
         while (zeros_set < zeros_per_row) {

@@ -4,7 +4,7 @@
 #include "FileOperations.h"
 
 #ifdef GPU_SOLVER
-__global__ void gpu_compute_func_and_delta_values(double* points_d, double* indexes_d, double* vec_d) {
+__global__ void gpu_compute_func_and_delta_values(double* points_d, double* indexes_d, double* vec_d, int MATRIX_SIZE) {
     int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
     int gidx = blockDim.x * blockIdx.x + threadIdx.x;
     int gidy = blockDim.y * blockIdx.y + threadIdx.y;
@@ -66,7 +66,7 @@ __global__ void gpu_compute_func_and_delta_values(double* points_d, double* inde
     }
 }
 
-__global__ void gpu_compute_jacobian(double * points_d, double * indexes_d, double * jacobian_d) {
+__global__ void gpu_compute_jacobian(double * points_d, double * indexes_d, double * jacobian_d, int MATRIX_SIZE) {
     extern __shared__ double shared_data[];
 
     int row = blockIdx.y;
@@ -116,7 +116,7 @@ __global__ void gpu_compute_jacobian(double * points_d, double * indexes_d, doub
     }
 }
 
-__global__ void normalizeRow(double* jacobian, double* inverse, int i, double pivot) {
+__global__ void normalizeRow(double* jacobian, double* inverse, int i, double pivot, int MATRIX_SIZE) {
     int j = threadIdx.x + blockDim.x * blockIdx.x;
     if (j < MATRIX_SIZE) {
         jacobian[i * MATRIX_SIZE + j] /= pivot;
@@ -124,7 +124,7 @@ __global__ void normalizeRow(double* jacobian, double* inverse, int i, double pi
     }
 }
 
-__global__ void eliminateColumn(double* jacobian, double* inverse, int i) {
+__global__ void eliminateColumn(double* jacobian, double* inverse, int i, int MATRIX_SIZE) {
     int k = blockIdx.x;
     int j = threadIdx.x;
 
@@ -135,7 +135,7 @@ __global__ void eliminateColumn(double* jacobian, double* inverse, int i) {
     }
 }
 
-__global__ void initIdentity(double* inverse) {
+__global__ void initIdentity(double* inverse, int MATRIX_SIZE) {
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     if (i < MATRIX_SIZE) {
         for (int j = 0; j < MATRIX_SIZE; ++j)
@@ -143,17 +143,17 @@ __global__ void initIdentity(double* inverse) {
     }
 }
 
-void gpu_inverse(double* jacobian_d, double* inverse_jacobian_d) {
+void gpu_inverse(double* jacobian_d, double* inverse_jacobian_d, int MATRIX_SIZE) {
     int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
     dim3 blockDim(BLOCK_SIZE, 1, 1);
     dim3 gridDim(x_blocks_count, 1, 1);
-    initIdentity << <gridDim, blockDim >> > (inverse_jacobian_d);
+    initIdentity << <gridDim, blockDim >> > (inverse_jacobian_d, MATRIX_SIZE);
 
     for (int i = 0; i < MATRIX_SIZE; ++i) {
         double pivot;
         cudaMemcpy(&pivot, &jacobian_d[i * MATRIX_SIZE +i], sizeof(double), cudaMemcpyDeviceToHost);
-        normalizeRow << <gridDim, blockDim >> > (jacobian_d, inverse_jacobian_d, i, pivot);
-        eliminateColumn << <MATRIX_SIZE, MATRIX_SIZE >> > (jacobian_d, inverse_jacobian_d, i);
+        normalizeRow << <gridDim, blockDim >> > (jacobian_d, inverse_jacobian_d, i, pivot, MATRIX_SIZE);
+        eliminateColumn << <MATRIX_SIZE, MATRIX_SIZE >> > (jacobian_d, inverse_jacobian_d, i, MATRIX_SIZE);
     }
 }
 
@@ -173,21 +173,21 @@ void NewtonSolver::gpu_newton_solve() {
     gpu_dummy_warmup << <1, 32 >> > ();
     cudaDeviceSynchronize();
     std::cout << "GPU Newton solver\n";
-    int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    int x_blocks_count = (data->MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
     int iterations_count = 0;
     double dx = 0;
 
     dim3 blockDim(BLOCK_SIZE, 1, 1);
-    dim3 gridDim(x_blocks_count, MATRIX_SIZE, 1);
+    dim3 gridDim(x_blocks_count, data->MATRIX_SIZE, 1);
 
-    double* delta = new double[MATRIX_SIZE];
+    double* delta = new double[data->MATRIX_SIZE];
 
 #ifdef TOTAL_ELASPED_TIME
     auto start_total = std::chrono::high_resolution_clock::now();
 #endif
 
-    cudaMemcpy(data->points_d, data->points_h, MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
-    cudaMemcpy(data->indexes_d, data->indexes_h, MATRIX_SIZE * MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(data->points_d, data->points_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(data->indexes_d, data->indexes_h, data->MATRIX_SIZE * data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 
     do {
         iterations_count++;
@@ -197,18 +197,18 @@ void NewtonSolver::gpu_newton_solve() {
 #endif
 
         gpu_compute_func_and_delta_values << <gridDim, blockDim, blockDim.x * sizeof(double) >> > (
-            data->points_d, data->indexes_d, data->intermediate_funcs_value_d);
+            data->points_d, data->indexes_d, data->intermediate_funcs_value_d, data->MATRIX_SIZE);
         cudaDeviceSynchronize();
 
-        cudaMemcpy(data->intermediate_funcs_value_h, data->intermediate_funcs_value_d, x_blocks_count * MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
+        cudaMemcpy(data->intermediate_funcs_value_h, data->intermediate_funcs_value_d, x_blocks_count * data->MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
 
-        for (int i = 0; i < MATRIX_SIZE; i++) {
+        for (int i = 0; i < data->MATRIX_SIZE; i++) {
             data->funcs_value_h[i] = -data->vector_b_h[i];
             for (int j = 0; j < x_blocks_count; j++) {
                 data->funcs_value_h[i] += data->intermediate_funcs_value_h[i * x_blocks_count + j];
             }
         }
-        cudaMemcpy(data->funcs_value_d, data->funcs_value_h, MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
+        cudaMemcpy(data->funcs_value_d, data->funcs_value_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 
 #ifdef INTERMEDIATE_RESULTS
         auto end = std::chrono::high_resolution_clock::now();
@@ -217,10 +217,10 @@ void NewtonSolver::gpu_newton_solve() {
 #endif
 
         gpu_compute_jacobian << <gridDim, blockDim, 2 * blockDim.x * sizeof(double) >> > (
-            data->points_d, data->indexes_d, data->jacobian_d);
+            data->points_d, data->indexes_d, data->jacobian_d, data->MATRIX_SIZE);
         cudaDeviceSynchronize();
 
-        cudaMemcpy(data->jacobian_h, data->jacobian_d, MATRIX_SIZE * MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
+        cudaMemcpy(data->jacobian_h, data->jacobian_d, data->MATRIX_SIZE * data->MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
 
 #ifdef INTERMEDIATE_RESULTS
         end = std::chrono::high_resolution_clock::now();
@@ -235,14 +235,14 @@ void NewtonSolver::gpu_newton_solve() {
         start = std::chrono::high_resolution_clock::now();
 #endif
 
-        //cudaMemcpy(data->funcs_value_d, data->funcs_value_h, MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
+        //cudaMemcpy(data->funcs_value_d, data->funcs_value_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
         gpu_compute_func_and_delta_values << <gridDim, blockDim, blockDim.x * sizeof(double) >> > (
-            data->funcs_value_d, data->inverse_jacobian_d, data->delta_d);
+            data->funcs_value_d, data->inverse_jacobian_d, data->delta_d, data->MATRIX_SIZE);
         cudaDeviceSynchronize();
 
-        cudaMemcpy(data->delta_h, data->delta_d, x_blocks_count * MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
+        cudaMemcpy(data->delta_h, data->delta_d, x_blocks_count * data->MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
 
-        for (int i = 0; i < MATRIX_SIZE; i++) {
+        for (int i = 0; i < data->MATRIX_SIZE; i++) {
             delta[i] = 0;
             for (int j = 0; j < x_blocks_count; j++) {
                 delta[i] -= data->delta_h[i * x_blocks_count + j];
@@ -256,12 +256,12 @@ void NewtonSolver::gpu_newton_solve() {
 #endif
 
         dx = 0.0;
-        for (size_t i = 0; i < MATRIX_SIZE; ++i) {
+        for (size_t i = 0; i < data->MATRIX_SIZE; ++i) {
             data->points_h[i] += delta[i];
             dx = std::max(dx, std::abs(delta[i]));
         }
 
-        cudaMemcpy(data->points_d, data->points_h, MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
+        cudaMemcpy(data->points_d, data->points_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 
 #ifdef INTERMEDIATE_RESULTS
         end = std::chrono::high_resolution_clock::now();

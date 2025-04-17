@@ -4,7 +4,8 @@
 #include "stdlib.h"
 #include "iostream"
 
-DataInitializer::DataInitializer() {
+DataInitializer::DataInitializer(int MATRIX_SIZE) {
+	this->MATRIX_SIZE = MATRIX_SIZE;
     int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
 #ifdef GPU_SOLVER
@@ -114,6 +115,6 @@ void DataInitializer::initialize_indexes_matrix_and_b() {
         }
     }
 
-    tools::generate_initial_indexes_matrix_and_vector_b(indexes_h, vector_b_h);
-    //tools::generate_sparse_initial_indexes_matrix_and_vector_b(indexes_h, vector_b_h, 500);
+    tools::generate_initial_indexes_matrix_and_vector_b(indexes_h, vector_b_h, MATRIX_SIZE);
+    //tools::generate_sparse_initial_indexes_matrix_and_vector_b(indexes_h, vector_b_h, 500, MATRIX_SIZE);
 }

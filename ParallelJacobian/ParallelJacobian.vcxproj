@@ -10,6 +10,25 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Include\config.h" />
+    <ClInclude Include="Include\CuDssSolver.h" />
+    <ClInclude Include="Include\DataInitializer.h" />
+    <ClInclude Include="Include\EditionalTools.h" />
+    <ClInclude Include="Include\FileOperations.h" />
+    <ClInclude Include="Include\NewtonSolver.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\CuDssSolver.cpp" />
+    <ClCompile Include="Source\DataInitializer.cpp" />
+    <ClCompile Include="Source\EditionalTools.cpp" />
+    <ClCompile Include="Source\FileOperations.cpp" />
+    <ClCompile Include="Source\NewtonSolver.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="Source\gpufunc.cu" />
+    <CudaCompile Include="Source\kernel.cu" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{89DC24C0-43B3-47B1-9280-43316A2B0495}</ProjectGuid>
     <RootNamespace>ParallelJacobian</RootNamespace>
@@ -82,24 +101,6 @@
       <TargetMachinePlatform>64</TargetMachinePlatform>
     </CudaCompile>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <CudaCompile Include="gpufunc.cu" />
-    <CudaCompile Include="kernel.cu" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="CuDssSolver.cpp" />
-    <ClCompile Include="DataInitializer.cpp" />
-    <ClCompile Include="EditionalTools.cpp" />
-    <ClCompile Include="FileOperations.cpp" />
-    <ClCompile Include="NewtonSolver.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="CuDssSolver.h" />
-    <ClInclude Include="DataInitializer.h" />
-    <ClInclude Include="EditionalTools.h" />
-    <ClInclude Include="FileOperations.h" />
-    <ClInclude Include="NewtonSolver.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.6.targets" />

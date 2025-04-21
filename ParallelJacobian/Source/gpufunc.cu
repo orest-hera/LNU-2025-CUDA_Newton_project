@@ -2,10 +2,10 @@
 #include "stdio.h"
 #include <iostream>
 #include <string>
+#include "cuda_runtime.h"
 #include "FileOperations.h"
 
-#ifdef GPU_SOLVER
-__global__ void gpu_compute_func_and_delta_values(double* points_d, double* indexes_d, double* vec_d, int MATRIX_SIZE) {
+__global__ void gpu_compute_func_and_delta_values(double* points_d, double* indexes_d, double* vec_d, int MATRIX_SIZE, int version) {
     int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
     int gidx = blockDim.x * blockIdx.x + threadIdx.x;
     int gidy = blockDim.y * blockIdx.y + threadIdx.y;
@@ -54,15 +54,27 @@ __global__ void gpu_compute_func_and_delta_values(double* points_d, double* inde
     __syncthreads();
 
     if (threadIdx.x < 32) {
-        double sum = shared_points[threadIdx.x];
-        sum += __shfl_down_sync(SHAFFLE_CONST, sum, 16);
-        sum += __shfl_down_sync(SHAFFLE_CONST, sum, 8);
-        sum += __shfl_down_sync(SHAFFLE_CONST, sum, 4);
-        sum += __shfl_down_sync(SHAFFLE_CONST, sum, 2);
-        sum += __shfl_down_sync(SHAFFLE_CONST, sum, 1);
 
-        if (threadIdx.x == 0) {
-            vec_d[gidy * x_blocks_count + blockIdx.x] = sum;
+        if (version >= 7){
+            double sum = shared_points[threadIdx.x];
+            sum += __shfl_down_sync(SHAFFLE_CONST, sum, 16);
+            sum += __shfl_down_sync(SHAFFLE_CONST, sum, 8);
+            sum += __shfl_down_sync(SHAFFLE_CONST, sum, 4);
+            sum += __shfl_down_sync(SHAFFLE_CONST, sum, 2);
+            sum += __shfl_down_sync(SHAFFLE_CONST, sum, 1);
+            if (threadIdx.x == 0) {
+                vec_d[gidy * x_blocks_count + blockIdx.x] = sum;
+            }
+        }
+        else{
+            shared_points[threadIdx.x] += shared_points[threadIdx.x + 16]; __syncwarp();
+            shared_points[threadIdx.x] += shared_points[threadIdx.x + 8]; __syncwarp();
+            shared_points[threadIdx.x] += shared_points[threadIdx.x + 4]; __syncwarp();
+            shared_points[threadIdx.x] += shared_points[threadIdx.x + 2]; __syncwarp();
+            shared_points[threadIdx.x] += shared_points[threadIdx.x + 1]; __syncwarp();
+            if (tidx == 0) {
+                vec_d[gidy * x_blocks_count + blockIdx.x] = shared_points[threadIdx.x];
+            }
         }
     }
 }
@@ -167,6 +179,9 @@ __global__ void gpu_dummy_warmup() {
 }
 
 void NewtonSolver::gpu_newton_solve() {
+    cudaDeviceProp prop;
+    cudaGetDeviceProperties(&prop, 0);
+    int version = prop.major;
     FileOperations* file_op = new FileOperations();
 	std::string file_name = "gpu_newton_solver_" + std::to_string(data->MATRIX_SIZE) + ".csv";
 	file_op->create_file(file_name, 5);
@@ -197,7 +212,7 @@ void NewtonSolver::gpu_newton_solve() {
 #endif
 
         gpu_compute_func_and_delta_values << <gridDim, blockDim, blockDim.x * sizeof(double) >> > (
-            data->points_d, data->indexes_d, data->intermediate_funcs_value_d, data->MATRIX_SIZE);
+            data->points_d, data->indexes_d, data->intermediate_funcs_value_d, data->MATRIX_SIZE, version);
         cudaDeviceSynchronize();
 
         cudaMemcpy(data->intermediate_funcs_value_h, data->intermediate_funcs_value_d, x_blocks_count * data->MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
@@ -237,7 +252,7 @@ void NewtonSolver::gpu_newton_solve() {
 
         //cudaMemcpy(data->funcs_value_d, data->funcs_value_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
         gpu_compute_func_and_delta_values << <gridDim, blockDim, blockDim.x * sizeof(double) >> > (
-            data->funcs_value_d, data->inverse_jacobian_d, data->delta_d, data->MATRIX_SIZE);
+            data->funcs_value_d, data->inverse_jacobian_d, data->delta_d, data->MATRIX_SIZE, version);
         cudaDeviceSynchronize();
 
         cudaMemcpy(data->delta_h, data->delta_d, x_blocks_count * data->MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
@@ -289,5 +304,3 @@ void NewtonSolver::gpu_newton_solve() {
     print_solution(iterations_count, data->points_h);
     delete[] delta;
 }
-
-#endif

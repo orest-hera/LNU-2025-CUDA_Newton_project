@@ -31,10 +31,12 @@ set_target_properties(ParallelJacobian PROPERTIES
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT")
 
+set_target_properties(ParallelJacobian PROPERTIES
+    CUDA_ARCHITECTURES "native"
+)
+
 add_custom_command(TARGET ParallelJacobian POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_SOURCE_DIR}/lib/cudss64_0.dll"
-    "${CMAKE_SOURCE_DIR}/scripts/run.ps1"
-    "${CMAKE_SOURCE_DIR}/scripts/draw.py"
     $<TARGET_FILE_DIR:ParallelJacobian>
 )

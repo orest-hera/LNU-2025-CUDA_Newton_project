@@ -7,3 +7,5 @@ Set-Location "../build"
 cmake ..
 
 cmake --build .
+
+Set-Location "../scripts"

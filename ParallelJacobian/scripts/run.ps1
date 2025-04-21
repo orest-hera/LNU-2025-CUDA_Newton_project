@@ -27,5 +27,17 @@ if ($arguments.Count -eq 0) {
     Start-Process -FilePath "..\build\Debug\ParallelJacobian.exe" -ArgumentList $arguments -Wait
 }
 
+Write-Host "Checking for pip..."
+$pipVersion = & python -m pip --version 2>$null
+
+if (!$pipVersion) {
+    Write-Host "pip is not installed. Please install pip first." -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "Installing required Python packages from requirements.txt..."
+& python -m pip install --upgrade pip
+& python -m pip install -r requirements.txt
+
 Write-Host "Running draw.py..."
 python draw.py

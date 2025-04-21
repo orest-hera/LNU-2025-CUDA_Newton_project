@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include <cusolverDn.h>
+#include "FileOperations.h"
 #include "NewtonSolver.h"
 #include "EditionalTools.h"
 #include "cuda_runtime.h"
@@ -93,6 +94,11 @@ void NewtonSolver::cpu_newton_solve() {
     std::cout << "CPU Newton solver\n";
     double dx = 0.0;
     int iterations_count = 0;
+    FileOperations* file_op = new FileOperations();
+    std::string file_name = "cpu_newton_solver_" + std::to_string(data->MATRIX_SIZE) + ".csv";
+    file_op->create_file(file_name, 5);
+    file_op->append_file_headers("func_value_t,jacobian_value_t,inverse_jacobian_t,delta_value_t,update_points_t,matrix_size");
+
 
 #ifdef TOTAL_ELASPED_TIME
 	auto start_total = std::chrono::high_resolution_clock::now();
@@ -167,12 +173,13 @@ void NewtonSolver::cpu_newton_solve() {
 		std::cout << "Error: " << dx << "\n";
         std::cout << "===============================================================\n";
 #endif
+        file_op->append_file_data(data->intermediate_results, data->MATRIX_SIZE);
     } while (dx > TOLERANCE);
-#ifdef TOTAL_ELASPED_TIME
+    file_op->close_file();
+
 	auto end_total = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> elapsed_total = end_total - start_total;
 	data->total_elapsed_time = elapsed_total.count();
-#endif
 
     print_solution(iterations_count, data->points_h);
 }

@@ -28,6 +28,6 @@ public:
 #ifdef GPU_SOLVER
 __global__ void gpu_compute_func_and_delta_values(double* points_d, double* indexes_d, double* vec_d, int MATRIX_SIZE);
 __global__ void gpu_compute_jacobian(double* points_d, double* indexes_d, double* jacobian_d, int MATRIX_SIZE);
-void gpu_cublasInverse(DataInitializer* data);
+void gpu_cublasInverse(DataInitializer* data, cudaStream_t stream);
 //void gpu_cusolverInverse(DataInitializer* data);
 #endif

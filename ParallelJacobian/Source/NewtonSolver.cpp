@@ -254,9 +254,14 @@ void NewtonSolver::cpu_newton_solve() {
 //    cusolverDnDestroy(cusolverH);
 //}
 
-void gpu_cublasInverse(DataInitializer* data) {
+void gpu_cublasInverse(DataInitializer* data, cudaStream_t stream) {
+    cublasSetStream(data->cublasContextHandler, stream);
     cublasStatus_t status2 = cublasDgetrfBatched(data->cublasContextHandler, data->MATRIX_SIZE, data->cublas_ajacobian_d, data->MATRIX_SIZE, data->cublas_pivot, data->cublas_info, 1);
+    
+    cudaStreamSynchronize(stream);
+
     cublasStatus_t status = cublasDgetriBatched(data->cublasContextHandler, data->MATRIX_SIZE, (const double**)data->cublas_ajacobian_d, data->MATRIX_SIZE, data->cublas_pivot, data->cublas_ainverse_jacobian_d, data->MATRIX_SIZE, data->cublas_info, 1);
+    cudaStreamSynchronize(stream);
 }
 #endif
 

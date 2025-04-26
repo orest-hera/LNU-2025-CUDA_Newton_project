@@ -204,6 +204,10 @@ void NewtonSolver::gpu_newton_solve() {
     cudaMemcpy(data->points_d, data->points_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
     cudaMemcpy(data->indexes_d, data->indexes_h, data->MATRIX_SIZE * data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 
+
+    cudaStream_t myStream;
+    cudaStreamCreate(&myStream);
+
     do {
         iterations_count++;
 
@@ -242,7 +246,7 @@ void NewtonSolver::gpu_newton_solve() {
         data->intermediate_results[1] = std::chrono::duration<double>(end - start).count();
         start = std::chrono::high_resolution_clock::now();
 #endif
-        gpu_cublasInverse(data);
+        gpu_cublasInverse(data, myStream);
 		//gpu_inverse(data->jacobian_d, data->inverse_jacobian_d);
 #ifdef INTERMEDIATE_RESULTS
         end = std::chrono::high_resolution_clock::now();
@@ -302,5 +306,6 @@ void NewtonSolver::gpu_newton_solve() {
 
 
     print_solution(iterations_count, data->points_h);
+    cudaStreamDestroy(myStream);
     delete[] delta;
 }

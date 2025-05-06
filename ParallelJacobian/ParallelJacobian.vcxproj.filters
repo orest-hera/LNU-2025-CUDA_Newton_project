@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{e53c8698-72b3-4ba0-9546-9660682df836}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include">
+      <UniqueIdentifier>{f66b1e96-4857-4c4b-af0f-6cca83910fce}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\NewtonSolver.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\FileOperations.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\EditionalTools.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DataInitializer.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CuDssSolver.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="Source\gpufunc.cu">
+      <Filter>Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="Source\kernel.cu">
+      <Filter>Source</Filter>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Include\DataInitializer.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\config.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\CuDssSolver.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\EditionalTools.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\FileOperations.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\NewtonSolver.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

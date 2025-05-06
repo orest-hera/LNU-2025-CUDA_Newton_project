@@ -247,6 +247,7 @@ void NewtonSolver::gpu_newton_solve() {
         start = std::chrono::high_resolution_clock::now();
 #endif
         gpu_cublasInverse(data, myStream);
+        cudaDeviceSynchronize();
 		//gpu_inverse(data->jacobian_d, data->inverse_jacobian_d);
 #ifdef INTERMEDIATE_RESULTS
         end = std::chrono::high_resolution_clock::now();

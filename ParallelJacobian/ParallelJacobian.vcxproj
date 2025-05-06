@@ -11,14 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Include\config.h" />
-    <ClInclude Include="Include\CuDssSolver.h" />
-    <ClInclude Include="Include\DataInitializer.h" />
-    <ClInclude Include="Include\EditionalTools.h" />
-    <ClInclude Include="Include\FileOperations.h" />
-    <ClInclude Include="Include\NewtonSolver.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="Source\CuDssSolver.cpp" />
     <ClCompile Include="Source\DataInitializer.cpp" />
     <ClCompile Include="Source\EditionalTools.cpp" />
@@ -28,6 +20,14 @@
   <ItemGroup>
     <CudaCompile Include="Source\gpufunc.cu" />
     <CudaCompile Include="Source\kernel.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Include\config.h" />
+    <ClInclude Include="Include\CuDssSolver.h" />
+    <ClInclude Include="Include\DataInitializer.h" />
+    <ClInclude Include="Include\EditionalTools.h" />
+    <ClInclude Include="Include\FileOperations.h" />
+    <ClInclude Include="Include\NewtonSolver.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{89DC24C0-43B3-47B1-9280-43316A2B0495}</ProjectGuid>
@@ -67,6 +67,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

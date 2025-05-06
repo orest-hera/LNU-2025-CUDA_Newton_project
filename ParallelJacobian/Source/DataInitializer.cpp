@@ -8,7 +8,6 @@ DataInitializer::DataInitializer(int MATRIX_SIZE) {
 	this->MATRIX_SIZE = MATRIX_SIZE;
     int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
-#ifdef GPU_SOLVER
     cudaMalloc((void**)&points_d, MATRIX_SIZE * sizeof(double));
     cudaMalloc((void**)&indexes_d, MATRIX_SIZE * MATRIX_SIZE * sizeof(double));
     cudaMalloc((void**)&intermediate_funcs_value_d, x_blocks_count * MATRIX_SIZE * sizeof(double));
@@ -26,8 +25,6 @@ DataInitializer::DataInitializer(int MATRIX_SIZE) {
     cublasCreate_v2(&cublasContextHandler);
     cudaMemcpy(cublas_ajacobian_d, &jacobian_d, sizeof(double*), cudaMemcpyHostToDevice);
     cudaMemcpy(cublas_ainverse_jacobian_d, &inverse_jacobian_d, sizeof(double*), cudaMemcpyHostToDevice);
-
-#endif
 
 #ifdef PINNED_MEMORY
 	cudaMallocHost((double**)&points_h, MATRIX_SIZE * sizeof(double));
@@ -61,7 +58,6 @@ DataInitializer::DataInitializer(int MATRIX_SIZE) {
 }
 
 DataInitializer::~DataInitializer() {
-#ifdef GPU_SOLVER
     cudaFree(points_d);
     cudaFree(indexes_d);
     cudaFree(intermediate_funcs_value_d);
@@ -74,7 +70,6 @@ DataInitializer::~DataInitializer() {
 	cudaFree(cublas_info);
 	cudaFree(cublas_ajacobian_d);
 	cudaFree(cublas_ainverse_jacobian_d);
-#endif
 
 #ifdef PINNED_MEMORY
 	cudaFreeHost(points_h);

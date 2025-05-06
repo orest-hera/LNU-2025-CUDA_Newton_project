@@ -25,25 +25,22 @@ void NewtonSolver::cpu_computeVec() {
 }
 
 double NewtonSolver::cpu_compute_derivative(int rowIndex, int colIndex) {
-    double* temp_plus, *temp_minus;
-	temp_plus = new double[data->MATRIX_SIZE];
-	temp_minus = new double[data->MATRIX_SIZE];
-
-    for (int i = 0; i < data->MATRIX_SIZE; ++i) {
-        temp_plus[i] = data->points_h[i];
-        temp_minus[i] = data->points_h[i];
-    }
-
     double equrency = EQURENCY;
+    double original = data->points_h[colIndex];
 
-    temp_plus[colIndex] += equrency;
-    temp_minus[colIndex] -= equrency;
-
-    double f_plus = 0.0, f_minus = 0.0;
+    data->points_h[colIndex] = original + equrency;
+    double f_plus = 0.0;
     for (int j = 0; j < data->MATRIX_SIZE; ++j) {
-        f_plus += tools::calculate_index_xn(data->indexes_h[rowIndex * data->MATRIX_SIZE + j], temp_plus[j]);
-        f_minus += tools::calculate_index_xn(data->indexes_h[rowIndex * data->MATRIX_SIZE + j], temp_minus[j]);
+        f_plus += tools::calculate_index_xn(data->indexes_h[rowIndex * data->MATRIX_SIZE + j], data->points_h[j]);
     }
+
+    data->points_h[colIndex] = original - equrency;
+    double f_minus = 0.0;
+    for (int j = 0; j < data->MATRIX_SIZE; ++j) {
+        f_minus += tools::calculate_index_xn(data->indexes_h[rowIndex * data->MATRIX_SIZE + j], data->points_h[j]);
+    }
+
+    data->points_h[colIndex] = original;
 
     return (f_plus - f_minus) / (2.0 * equrency);
 }

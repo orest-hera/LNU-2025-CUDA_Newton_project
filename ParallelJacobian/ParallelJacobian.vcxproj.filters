@@ -24,6 +24,9 @@
     <ClCompile Include="Source\CuDssSolver.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Equation.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Source\gpufunc.cu">
@@ -50,6 +53,9 @@
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="Include\NewtonSolver.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Equation.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>

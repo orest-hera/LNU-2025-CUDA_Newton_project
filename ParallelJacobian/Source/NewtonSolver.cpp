@@ -16,12 +16,18 @@ NewtonSolver::~NewtonSolver() {
 }
 
 void NewtonSolver::cpu_computeVec() {
-	for (int i = 0; i < data->MATRIX_SIZE; i++) {
-        data->funcs_value_h[i] = -data->vector_b_h[i];
-		for (int j = 0; j < data->MATRIX_SIZE; j++) {
-			data->funcs_value_h[i] += tools::calculate_index_xn(data->indexes_h[i * data->MATRIX_SIZE + j], data->points_h[j]);
+    const int N = data->MATRIX_SIZE;
+
+    for (int i = 0; i < N; ++i) {
+        double sum = 0.0;
+        for (int j = 0; j < N; ++j) {
+            double index = data->indexes_h[i * N + j];
+            double x = data->points_h[j];
+            sum += tools::calculate_index_xn(index, x);
         }
-	}
+
+        data->funcs_value_h[i] = sum - data->vector_b_h[i];
+    }
 }
 
 double NewtonSolver::cpu_compute_derivative(int rowIndex, int colIndex) {
@@ -82,7 +88,7 @@ void NewtonSolver::cpu_compute_delta() {
     for (int i = 0; i < data->MATRIX_SIZE; i++) {
         data->delta_h[i] = 0.0;
         for (int j = 0; j < data->MATRIX_SIZE; j++) {
-            data->delta_h[i] -= tools::calculate_index_xn(data->inverse_jacobian_h[i * data->MATRIX_SIZE + j], data->funcs_value_h[j]);
+            data->delta_h[i] -= data->inverse_jacobian_h[i * data->MATRIX_SIZE + j] * data->funcs_value_h[j];
         }
     }
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include "../Equation.h"
 #include "vector"
 #include "config.h"
 #include "cublas_v2.h"
@@ -10,6 +11,7 @@
 
 struct DataInitializer {
 public:
+	Equation* equation{ nullptr };
 	int MATRIX_SIZE{ 0 };
 
 	double* indexes_h{ nullptr },
@@ -43,7 +45,7 @@ public:
 
 	void initialize_indexes_matrix_and_b();
  
-	DataInitializer(int MATRIX_SIZE);
+	DataInitializer(int MATRIX_SIZE, int power = 1);
 	~DataInitializer();
 
 	friend struct NewtonSolver;

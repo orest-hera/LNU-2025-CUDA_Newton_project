@@ -394,7 +394,7 @@ void NewtonSolver::gpu_newton_solve() {
     data->total_elapsed_time = std::chrono::duration<double>(end_total - start_total).count();
 
 
-    print_solution(iterations_count, data->points_h);
+    print_solution(iterations_count, data->points_h, data->points_check);
     cudaStreamDestroy(myStream);
     delete[] delta;
 }

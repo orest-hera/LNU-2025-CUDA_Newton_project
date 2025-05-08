@@ -4,9 +4,9 @@
 #include "config.h"
 #include "cublas_v2.h"
 
-#define BLOCK_SIZE 128
-#define EQURENCY 1e-4
-#define TOLERANCE 1e-3
+#define BLOCK_SIZE 64
+#define EQURENCY 1e-6
+#define TOLERANCE 1e-5
 #define SHAFFLE_CONST 0xffffffff
 
 struct DataInitializer {
@@ -21,7 +21,8 @@ public:
 		* jacobian_h{ nullptr },
 		* inverse_jacobian_h{ nullptr },
 		* delta_h{ nullptr },
-		* funcs_value_h{ nullptr };
+		* funcs_value_h{ nullptr },
+		* points_check;
 
 	double* indexes_d{ nullptr },
 		* points_d{ nullptr },

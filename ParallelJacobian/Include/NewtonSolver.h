@@ -15,7 +15,7 @@ private:
 	void cpu_inverse();
 	void cpu_compute_delta();
 
-	void print_solution(int iterations_count, double* result);
+	void print_solution(int iterations_count, double* result, double* initial);
 
 public:
 	NewtonSolver(DataInitializer* data);

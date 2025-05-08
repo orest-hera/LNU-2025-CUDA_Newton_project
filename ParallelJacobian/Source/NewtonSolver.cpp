@@ -23,7 +23,7 @@ void NewtonSolver::cpu_computeVec() {
         for (int j = 0; j < N; ++j) {
             double index = data->indexes_h[i * N + j];
             double x = data->points_h[j];
-            sum += tools::calculate_index_xn(index, x);
+            sum += data->equation->calculate_term_value(index, x);
         }
 
         data->funcs_value_h[i] = sum - data->vector_b_h[i];
@@ -37,13 +37,23 @@ double NewtonSolver::cpu_compute_derivative(int rowIndex, int colIndex) {
     data->points_h[colIndex] = original + equrency;
     double f_plus = 0.0;
     for (int j = 0; j < data->MATRIX_SIZE; ++j) {
-        f_plus += tools::calculate_index_xn(data->indexes_h[rowIndex * data->MATRIX_SIZE + j], data->points_h[j]);
+        if (j == colIndex) {
+            f_plus += data->equation->calculate_term_value(data->indexes_h[rowIndex * data->MATRIX_SIZE + j], data->points_h[j]);
+        }
+        else {
+			f_plus += data->equation->calculate_term_value(data->indexes_h[rowIndex * data->MATRIX_SIZE + j], data->points_h[j]);
+        }
     }
 
-    data->points_h[colIndex] = original - equrency;
+    data->points_h[colIndex] = original - 2 * equrency;
     double f_minus = 0.0;
     for (int j = 0; j < data->MATRIX_SIZE; ++j) {
-        f_minus += tools::calculate_index_xn(data->indexes_h[rowIndex * data->MATRIX_SIZE + j], data->points_h[j]);
+        if (j == colIndex) {
+            f_minus += data->equation->calculate_term_value(data->indexes_h[rowIndex * data->MATRIX_SIZE + j], data->points_h[j]);
+        }
+        else {
+            f_minus += data->equation->calculate_term_value(data->indexes_h[rowIndex * data->MATRIX_SIZE + j], data->points_h[j]);
+        }
     }
 
     data->points_h[colIndex] = original;
@@ -64,25 +74,53 @@ void NewtonSolver::cpu_compute_jacobian() {
 }
 
 void NewtonSolver::cpu_inverse() {
-    for (int i = 0; i < data->MATRIX_SIZE; i++) data->inverse_jacobian_h[i * data->MATRIX_SIZE + i] = 1.0;
+    int N = data->MATRIX_SIZE;
 
-    for (int i = 0; i < data->MATRIX_SIZE; i++) {
-        double temp = data->jacobian_h[i * data->MATRIX_SIZE + i];
-        for (int j = 0; j < data->MATRIX_SIZE; j++) {
-            data->jacobian_h[i * data->MATRIX_SIZE + j] /= temp;
-            data->inverse_jacobian_h[i * data->MATRIX_SIZE + j] /= temp;
+    for (int i = 0; i < N; i++)
+        for (int j = 0; j < N; j++)
+            data->inverse_jacobian_h[i * N + j] = (i == j) ? 1.0 : 0.0;
+
+    for (int i = 0; i < N; i++) {
+        int maxRow = i;
+        double maxVal = fabs(data->jacobian_h[i * N + i]);
+        for (int k = i + 1; k < N; k++) {
+            double val = fabs(data->jacobian_h[k * N + i]);
+            if (val > maxVal) {
+                maxVal = val;
+                maxRow = k;
+            }
         }
-        for (int k = 0; k < data->MATRIX_SIZE; k++) {
+
+        if (maxRow != i) {
+            for (int j = 0; j < N; j++) {
+                std::swap(data->jacobian_h[i * N + j], data->jacobian_h[maxRow * N + j]);
+                std::swap(data->inverse_jacobian_h[i * N + j], data->inverse_jacobian_h[maxRow * N + j]);
+            }
+        }
+
+        double temp = data->jacobian_h[i * N + i];
+        if (fabs(temp) < 1e-12) {
+            std::cerr << "Jacobian is singular or nearly singular at row " << i << std::endl;
+            return;
+        }
+
+        for (int j = 0; j < N; j++) {
+            data->jacobian_h[i * N + j] /= temp;
+            data->inverse_jacobian_h[i * N + j] /= temp;
+        }
+
+        for (int k = 0; k < N; k++) {
             if (k != i) {
-                temp = data->jacobian_h[k * data->MATRIX_SIZE + i];
-                for (int j = 0; j < data->MATRIX_SIZE; j++) {
-                    data->jacobian_h[k * data->MATRIX_SIZE + j] -= data->jacobian_h[i * data->MATRIX_SIZE + j] * temp;
-                    data->inverse_jacobian_h[k * data->MATRIX_SIZE + j] -= data->inverse_jacobian_h[i * data->MATRIX_SIZE + j] * temp;
+                double factor = data->jacobian_h[k * N + i];
+                for (int j = 0; j < N; j++) {
+                    data->jacobian_h[k * N + j] -= data->jacobian_h[i * N + j] * factor;
+                    data->inverse_jacobian_h[k * N + j] -= data->inverse_jacobian_h[i * N + j] * factor;
                 }
             }
         }
     }
 }
+
 
 void NewtonSolver::cpu_compute_delta() {
     for (int i = 0; i < data->MATRIX_SIZE; i++) {
@@ -184,7 +222,7 @@ void NewtonSolver::cpu_newton_solve() {
 	std::chrono::duration<double> elapsed_total = end_total - start_total;
 	data->total_elapsed_time = elapsed_total.count();
 
-    print_solution(iterations_count, data->points_h);
+    print_solution(iterations_count, data->points_h, data->points_check);
 }
 
 //
@@ -268,7 +306,7 @@ void gpu_cublasInverse(DataInitializer* data, cudaStream_t stream) {
 }
 #endif
 
-void NewtonSolver::print_solution(int iterations_count, double* result) {
+void NewtonSolver::print_solution(int iterations_count, double* result, double* initial) {
     std::cout << "Total Iterations count: " << iterations_count << "\n";
 
 #ifdef TOTAL_ELASPED_TIME
@@ -278,7 +316,7 @@ void NewtonSolver::print_solution(int iterations_count, double* result) {
     std::cout << "Solution: \n";
 
     for (int i = 0; i < data->MATRIX_SIZE; i++) {
-        std::cout << result[i] << "\n";
+        std::cout << result[i] << " " << initial[i] << "\n";
     }
 #endif
     std::cout << "\n";

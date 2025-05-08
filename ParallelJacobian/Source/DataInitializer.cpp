@@ -45,6 +45,7 @@ DataInitializer::DataInitializer(int MATRIX_SIZE, int power) {
     delta_h = new double[x_blocks_count * MATRIX_SIZE];
     vector_b_h = new double[MATRIX_SIZE];
     intermediate_funcs_value_h = new double[x_blocks_count * MATRIX_SIZE];
+	points_check = new double[MATRIX_SIZE];
 #endif
 
 #ifdef INTERMEDIATE_RESULTS
@@ -90,13 +91,14 @@ DataInitializer::~DataInitializer() {
     delete[] vector_b_h;
     delete[] delta_h;
 	delete[] intermediate_funcs_value_h;
+	delete[] points_check;
 #endif
 }
 
 void DataInitializer::initialize_indexes_matrix_and_b() {
     int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
     for (int i = 0; i < MATRIX_SIZE; i++) {
-        points_h[i] = 10;
+        points_h[i] = 1;
         funcs_value_h[i] = 0;
         delta_h[i] = 0;
 #ifdef GPU_SOLVER
@@ -111,6 +113,6 @@ void DataInitializer::initialize_indexes_matrix_and_b() {
         }
     }
 
-    tools::generate_initial_indexes_matrix_and_vector_b(indexes_h, vector_b_h, MATRIX_SIZE);
+    tools::generate_initial_indexes_matrix_and_vector_b(indexes_h, vector_b_h, points_check, MATRIX_SIZE, equation);
     //tools::generate_sparse_initial_indexes_matrix_and_vector_b(indexes_h, vector_b_h, 500, MATRIX_SIZE);
 }

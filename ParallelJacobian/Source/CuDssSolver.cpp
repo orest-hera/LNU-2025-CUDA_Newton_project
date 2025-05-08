@@ -11,7 +11,7 @@ CuDssSolver::CuDssSolver(int MATRIX_SIZE) {
 	matrix_A = new double[MATRIX_SIZE * MATRIX_SIZE];
 	vector_b_h = new double[MATRIX_SIZE];
 
-	tools::generate_initial_indexes_matrix_and_vector_b(matrix_A, vector_b_h, MATRIX_SIZE);
+	//tools::generate_initial_indexes_matrix_and_vector_b(matrix_A, vector_b_h, MATRIX_SIZE);
 
 	non_zero_count = count_non_zero_elements(matrix_A);
 	csr_cols_h = new int[non_zero_count];

@@ -3,21 +3,37 @@
 #include "time.h"
 #include "stdlib.h"
 
-void tools::generate_initial_indexes_matrix_and_vector_b(double* matrix, double* b, int MATRIX_SIZE) {
-	int value = 0;
-	double sum = 0;
-	for (int i = 0; i < MATRIX_SIZE; i++) {
+//void tools::generate_initial_indexes_matrix_and_vector_b(double* matrix, double* b, int MATRIX_SIZE) {
+//	int value = 0;
+//	double sum = 0;
+//	for (int i = 0; i < MATRIX_SIZE; i++) {
+//
+//		b[i] = 10;
+//
+//		value = 0;
+//		sum = 0;
+//		for (int j = 0; j < MATRIX_SIZE - 1; j++) {
+//			matrix[i * MATRIX_SIZE + j] = static_cast<double>(rand()) / RAND_MAX;
+//			sum += matrix[i * MATRIX_SIZE + j];
+//		}
+//		matrix[i * MATRIX_SIZE + MATRIX_SIZE - 1] = 10 - sum;
+//	}
+//}
 
-		b[i] = 10;
+void tools::generate_initial_indexes_matrix_and_vector_b(double* matrix, double* b, double* points, int MATRIX_SIZE, Equation* equation) {
+    for (int i = 0; i < MATRIX_SIZE; i++) {
+        points[i] = static_cast<double>(rand()) / RAND_MAX;
+        for (int j = 0; j < MATRIX_SIZE; j++) {
+            matrix[i * MATRIX_SIZE + j] = static_cast<double>(rand()) / RAND_MAX;
+        }
+    }
 
-		value = 0;
-		sum = 0;
-		for (int j = 0; j < MATRIX_SIZE - 1; j++) {
-			matrix[i * MATRIX_SIZE + j] = static_cast<double>(rand()) / RAND_MAX;
-			sum += matrix[i * MATRIX_SIZE + j];
-		}
-		matrix[i * MATRIX_SIZE + MATRIX_SIZE - 1] = 10 - sum;
-	}
+    for (int i = 0; i < MATRIX_SIZE; i++) {
+        b[i] = 0;
+        for (int j = 0; j < MATRIX_SIZE; j++) {
+            b[i] += equation->calculate_term_value(matrix[i * MATRIX_SIZE + j], points[j]);
+        }
+    }
 }
 
 void tools::generate_sparse_initial_indexes_matrix_and_vector_b(double* matrix, double* b, int zeros_per_row, int MATRIX_SIZE) {

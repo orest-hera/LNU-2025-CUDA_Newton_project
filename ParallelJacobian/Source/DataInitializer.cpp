@@ -98,7 +98,7 @@ DataInitializer::~DataInitializer() {
 void DataInitializer::initialize_indexes_matrix_and_b() {
     int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
     for (int i = 0; i < MATRIX_SIZE; i++) {
-        points_h[i] = 1;
+        points_h[i] = 10;
         funcs_value_h[i] = 0;
         delta_h[i] = 0;
 #ifdef GPU_SOLVER

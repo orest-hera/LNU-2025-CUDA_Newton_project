@@ -1,5 +1,5 @@
 #pragma once
-#include "../Equation.h"
+#include "Equation.h"
 #include "vector"
 #include "config.h"
 #include "cublas_v2.h"

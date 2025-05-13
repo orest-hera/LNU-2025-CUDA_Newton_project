@@ -13,15 +13,15 @@
 
 int main(int argc, char* argv[]) {
 
-    int matrix_size_max = 100;
-	int matrix_size_min = 100;
-	int stride = 100;
+    int matrix_size_max = 1000;
+	int matrix_size_min = 1000;
+	int stride = 1000;
     int power = 1;
     for (int i = 0; i < argc; i++) {
         std::string arg = argv[i];
 
         if (arg.find("--power=") == 0) {
-            power = std::stod(arg.substr(8)); // довжина "--power=" = 8
+            power = std::stod(arg.substr(8));
         }
     }
     if (argc > 1) {
@@ -48,28 +48,29 @@ int main(int argc, char* argv[]) {
         //
         // CPY
         //
-        {
-            std::unique_ptr<DataInitializer> data = std::make_unique<DataInitializer>(size, 1);
-            std::unique_ptr<NewtonSolver> newton_solver = std::make_unique<NewtonSolver>(data.get());
-            newton_solver->cpu_newton_solve();
-			row[0] = data->total_elapsed_time;
-        }
+   //     {
+   //         std::unique_ptr<DataInitializer> data = std::make_unique<DataInitializer>(size, 3);
+   //         std::unique_ptr<NewtonSolver> newton_solver = std::make_unique<NewtonSolver>(data.get());
+   //         newton_solver->cpu_newton_solve();
+			//row[0] = data->total_elapsed_time;
+   //     }
 
         //
         // GPU
         //
         {
-            std::unique_ptr<DataInitializer> data2 = std::make_unique<DataInitializer>(size, 1);
+            std::unique_ptr<DataInitializer> data2 = std::make_unique<DataInitializer>(size, 3);
             std::unique_ptr<NewtonSolver> newton_solver2 = std::make_unique<NewtonSolver>(data2.get());
             newton_solver2->gpu_newton_solve();
 			row[1] = data2->total_elapsed_time;
         }
 
-   //     {
-   //         std::unique_ptr<CuDssSolver> cuDssSolver = std::make_unique<CuDssSolver>(size);
-   //         double elapsed_time = cuDssSolver->solve();
-			//row[2] = elapsed_time;
-   //     }
+        {
+            std::unique_ptr<DataInitializer> data3 = std::make_unique<DataInitializer>(size, 3);
+            std::unique_ptr<CuDssSolver> cuDssSolver = std::make_unique<CuDssSolver>(data3.get());
+            cuDssSolver->gpu_newton_solver_cudss();
+			row[2] = 1.0;
+        }
 		file_op->append_file_data(row, size);
     }
     return 0;

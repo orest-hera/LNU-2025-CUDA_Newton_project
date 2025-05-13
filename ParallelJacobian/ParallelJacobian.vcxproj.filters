@@ -21,10 +21,10 @@
     <ClCompile Include="Source\DataInitializer.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\CuDssSolver.cpp">
+    <ClCompile Include="Equation.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Equation.cpp">
+    <ClCompile Include="CuDssSolver.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
@@ -33,6 +33,12 @@
       <Filter>Source</Filter>
     </CudaCompile>
     <CudaCompile Include="Source\kernel.cu">
+      <Filter>Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="CuDssSolver.cu">
+      <Filter>Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="NewtonSolverFunctions.cu">
       <Filter>Source</Filter>
     </CudaCompile>
   </ItemGroup>
@@ -56,6 +62,9 @@
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="Equation.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="NewtonSolverFunctions.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>

@@ -14,7 +14,7 @@ link_directories(
 
 file(GLOB SOURCE_FILES
     "${CMAKE_SOURCE_DIR}/Source/*.cpp"
-    "${CMAKE_SOURCE_DIR}/Source/gpufunc.cu"
+    "${CMAKE_SOURCE_DIR}/Source/*.cu"
 )
 
 add_executable(${CMAKE_PROJECT_NAME} "${CMAKE_SOURCE_DIR}/Source/kernel.cu")

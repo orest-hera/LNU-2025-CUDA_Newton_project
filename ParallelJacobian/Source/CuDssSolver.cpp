@@ -1,47 +1,31 @@
-#include "cudss.h"
-#include <iostream>
 #include "CuDssSolver.h"
 #include "EditionalTools.h"
-#include "DataInitializer.h"
-#include "FileOperations.h"
+#include "cudss.h"
 #include "chrono"
+#include <iostream>
+#include "FileOperations.h"
+#include "NewtonSolverFunctions.h"
+#include <NewtonSolver.h>
 
-CuDssSolver::CuDssSolver(int MATRIX_SIZE) {
-	this->MATRIX_SIZE = MATRIX_SIZE;
-	matrix_A = new double[MATRIX_SIZE * MATRIX_SIZE];
-	vector_b_h = new double[MATRIX_SIZE];
+CuDssSolver::CuDssSolver(DataInitializer* data) {
+	this->data = data;
 
-	//tools::generate_initial_indexes_matrix_and_vector_b(matrix_A, vector_b_h, MATRIX_SIZE);
+	//tools::generate_initial_indexes_matrix_and_vector_b(data->indexes_h, data->vector_b_h, data->points_h, data->MATRIX_SIZE, data->equation);
 
-	non_zero_count = count_non_zero_elements(matrix_A);
+	non_zero_count = count_non_zero_elements(data->indexes_h);
 	csr_cols_h = new int[non_zero_count];
-	csr_rows_h = new int[MATRIX_SIZE + 1];
+	csr_rows_h = new int[data->MATRIX_SIZE + 1];
 	csr_values_h = new double[non_zero_count];
-	vector_x_h = new double[MATRIX_SIZE];
 
-	cudaMalloc((void**)&vector_x_d, MATRIX_SIZE * sizeof(double));
-	cudaMalloc((void**)&vector_b_d, MATRIX_SIZE * sizeof(double));
 	cudaMalloc((void**)&csr_values_d, non_zero_count * sizeof(double));
-	cudaMalloc((void**)&csr_rows_d, (MATRIX_SIZE + 1) * sizeof(int));
+	cudaMalloc((void**)&csr_rows_d, (data->MATRIX_SIZE + 1) * sizeof(int));
 	cudaMalloc((void**)&csr_cols_d, non_zero_count * sizeof(int));
-
-	parse_to_csr(csr_cols_h, csr_rows_h, csr_values_h, matrix_A);
-
-	cudaMemcpy(csr_cols_d, csr_cols_h, non_zero_count * sizeof(int), cudaMemcpyHostToDevice);
-	cudaMemcpy(csr_rows_d, csr_rows_h, (MATRIX_SIZE + 1) * sizeof(int), cudaMemcpyHostToDevice);
-	cudaMemcpy(csr_values_d, csr_values_h, non_zero_count * sizeof(double), cudaMemcpyHostToDevice);
-	cudaMemcpy(vector_b_d, vector_b_h, MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 }
 
 CuDssSolver::~CuDssSolver() {
-	delete[] matrix_A;
-	delete[] vector_b_h;
 	delete[] csr_cols_h;
 	delete[] csr_rows_h;
 	delete[] csr_values_h;
-	delete[] vector_x_h;
-	cudaFree(vector_x_d);
-	cudaFree(vector_b_d);
 	cudaFree(csr_values_d);
 	cudaFree(csr_rows_d);
 	cudaFree(csr_cols_d);
@@ -49,7 +33,7 @@ CuDssSolver::~CuDssSolver() {
 
 int CuDssSolver::count_non_zero_elements(double* matrix_A) {
 	int non_zero_count = 0;
-	for (int i = 0; i < MATRIX_SIZE * MATRIX_SIZE; i++) {
+	for (int i = 0; i < data->MATRIX_SIZE * data->MATRIX_SIZE; i++) {
 		if (matrix_A[i] != 0) {
 			non_zero_count++;
 		}
@@ -60,11 +44,11 @@ int CuDssSolver::count_non_zero_elements(double* matrix_A) {
 void CuDssSolver::parse_to_csr(int* csr_cols, int* csr_rows, double* csr_values, double* matrix_A) {
 	int non_zero_count = 0;
 	csr_rows[0] = 0;
-	for (int i = 0; i < MATRIX_SIZE; ++i) {
-		for (int j = 0; j < MATRIX_SIZE; ++j) {
-			if (matrix_A[i * MATRIX_SIZE + j] != 0) {
+	for (int i = 0; i < data->MATRIX_SIZE; ++i) {
+		for (int j = 0; j < data->MATRIX_SIZE; ++j) {
+			if (matrix_A[i * data->MATRIX_SIZE + j] != 0) {
 				csr_cols[non_zero_count] = j;
-				csr_values[non_zero_count] = matrix_A[i * MATRIX_SIZE + j];
+				csr_values[non_zero_count] = matrix_A[i * data->MATRIX_SIZE + j];
 				non_zero_count++;
 			}
 		}
@@ -72,7 +56,13 @@ void CuDssSolver::parse_to_csr(int* csr_cols, int* csr_rows, double* csr_values,
 	}
 }
 
-double CuDssSolver::solve(){
+double CuDssSolver::solve(double* matrix_A_h, double* vector_b_d, double* vector_x_h, double* vector_x_d) {
+	parse_to_csr(csr_cols_h, csr_rows_h, csr_values_h, matrix_A_h);
+
+	cudaMemcpy(csr_cols_d, csr_cols_h, non_zero_count * sizeof(int), cudaMemcpyHostToDevice);
+	cudaMemcpy(csr_rows_d, csr_rows_h, (data->MATRIX_SIZE + 1) * sizeof(int), cudaMemcpyHostToDevice);
+	cudaMemcpy(csr_values_d, csr_values_h, non_zero_count * sizeof(double), cudaMemcpyHostToDevice);
+
 	auto start = std::chrono::high_resolution_clock::now();
 	cudssHandle_t handler;
 	cudssConfig_t solverConfig;
@@ -83,14 +73,14 @@ double CuDssSolver::solve(){
 	cudssDataCreate(handler, &solverData);
 
 	cudssMatrix_t x, b;
-	cudssMatrixCreateDn(&b, MATRIX_SIZE, 1, MATRIX_SIZE, vector_b_d, CUDA_R_64F, CUDSS_LAYOUT_COL_MAJOR);
-	cudssMatrixCreateDn(&x, MATRIX_SIZE, 1, MATRIX_SIZE, vector_x_d, CUDA_R_64F, CUDSS_LAYOUT_COL_MAJOR);
+	cudssMatrixCreateDn(&b, data->MATRIX_SIZE, 1, data->MATRIX_SIZE, vector_b_d, CUDA_R_64F, CUDSS_LAYOUT_COL_MAJOR);
+	cudssMatrixCreateDn(&x, data->MATRIX_SIZE, 1, data->MATRIX_SIZE, vector_x_d, CUDA_R_64F, CUDSS_LAYOUT_COL_MAJOR);
 
 	cudssMatrix_t A;
 	cudssMatrixType_t mtype = CUDSS_MTYPE_GENERAL;
 	cudssMatrixViewType_t mvtype = CUDSS_MVIEW_FULL;
 	cudssIndexBase_t base = CUDSS_BASE_ZERO;
-	cudssMatrixCreateCsr(&A, MATRIX_SIZE, MATRIX_SIZE, non_zero_count, csr_rows_d, NULL, csr_cols_d, csr_values_d, CUDA_R_32I, CUDA_R_64F, mtype, mvtype, base);
+	cudssMatrixCreateCsr(&A, data->MATRIX_SIZE, data->MATRIX_SIZE, non_zero_count, csr_rows_d, NULL, csr_cols_d, csr_values_d, CUDA_R_32I, CUDA_R_64F, mtype, mvtype, base);
 
 	cudssExecute(handler, CUDSS_PHASE_ANALYSIS, solverConfig, solverData, A, x, b);
 	cudssExecute(handler, CUDSS_PHASE_FACTORIZATION, solverConfig, solverData, A, x, b);
@@ -105,13 +95,22 @@ double CuDssSolver::solve(){
 
 	cudaDeviceSynchronize();
 
-	cudaMemcpy(vector_x_h, vector_x_d, MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
+	cudaMemcpy(vector_x_h, vector_x_d, data->MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
 
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> elapsed = end - start;
-	for (int i = 0; i < MATRIX_SIZE; ++i) {
-		std::cout << vector_x_h[i] << std::endl;
-	}
 	std::cout << "Elapsed time: " << elapsed.count() << " seconds" << std::endl;
 	return elapsed.count();
+}
+
+void CuDssSolver::print_solutionn(int iterations_count, double* result, double* initial, DataInitializer* data) {
+	std::cout << "Total Iterations count: " << iterations_count << "\n";
+#ifdef SOLUTION_PRINT
+	std::cout << "Solution: \n";
+
+	for (int i = 0; i < data->MATRIX_SIZE; i++) {
+		std::cout << result[i] << " " << initial[i] << "\n";
+	}
+#endif
+	std::cout << "\n";
 }

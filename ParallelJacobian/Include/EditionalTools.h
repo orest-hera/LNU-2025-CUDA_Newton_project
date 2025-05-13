@@ -1,5 +1,5 @@
 #pragma once
-#include "../Equation.h"
+#include "Equation.h"
 
 namespace tools {
 	/*void generate_initial_indexes_matrix_and_vector_b(double* matrix, double* b, int MATRIX_SIZE);*/

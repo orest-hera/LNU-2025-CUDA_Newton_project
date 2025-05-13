@@ -11,14 +11,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CuDssSolver.cpp" />
     <ClCompile Include="Equation.cpp" />
-    <ClCompile Include="Source\CuDssSolver.cpp" />
     <ClCompile Include="Source\DataInitializer.cpp" />
     <ClCompile Include="Source\EditionalTools.cpp" />
     <ClCompile Include="Source\FileOperations.cpp" />
     <ClCompile Include="Source\NewtonSolver.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="CuDssSolver.cu" />
+    <CudaCompile Include="NewtonSolverFunctions.cu" />
     <CudaCompile Include="Source\gpufunc.cu" />
     <CudaCompile Include="Source\kernel.cu" />
   </ItemGroup>
@@ -30,6 +32,7 @@
     <ClInclude Include="Include\EditionalTools.h" />
     <ClInclude Include="Include\FileOperations.h" />
     <ClInclude Include="Include\NewtonSolver.h" />
+    <ClInclude Include="NewtonSolverFunctions.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{89DC24C0-43B3-47B1-9280-43316A2B0495}</ProjectGuid>

@@ -17,26 +17,26 @@ file(GLOB SOURCE_FILES
     "${CMAKE_SOURCE_DIR}/Source/gpufunc.cu"
 )
 
+add_executable(${CMAKE_PROJECT_NAME} "${CMAKE_SOURCE_DIR}/Source/kernel.cu")
+
 add_library(my_lib ${SOURCE_FILES})
 
-add_executable(ParallelJacobian "${CMAKE_SOURCE_DIR}/Source/kernel.cu")
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE my_lib cudss cublas)
 
-target_link_libraries(ParallelJacobian PRIVATE my_lib cudss cublas)
+set(CMAKE_BUILD_TYPE Release)
 
-set(CMAKE_BUILD_TYPE Debug)
-
-set_target_properties(ParallelJacobian PROPERTIES
+set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON
 )
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT")
 
-set_target_properties(ParallelJacobian PROPERTIES
+set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES
     CUDA_ARCHITECTURES "native"
 )
 
-add_custom_command(TARGET ParallelJacobian POST_BUILD
+add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_SOURCE_DIR}/lib/cudss64_0.dll"
-    $<TARGET_FILE_DIR:ParallelJacobian>
+    "C:/Program Files/NVIDIA cuDSS/v0.4/bin/12/cudss64_0.dll"
+    $<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}>
 )

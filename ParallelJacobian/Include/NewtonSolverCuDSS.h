@@ -2,7 +2,7 @@
 #include "DataInitializer.h"
 #include <cuda.h>
 
-class CuDssSolver {
+class NewtonSolverCuDSS {
 private:
 	DataInitializer* data;
 	int count_non_zero_elements(double* matrix_A);
@@ -20,8 +20,8 @@ public:
 
 	int non_zero_count{ 0 };
 
-	CuDssSolver(DataInitializer *data);
-	~CuDssSolver();
+	NewtonSolverCuDSS(DataInitializer *data);
+	~NewtonSolverCuDSS();
 	double solve(double* matrix_A_h, double* vector_b_d, double* vector_x_h, double* vector_x_d);
 	void gpu_newton_solver_cudss();
 	void print_solutionn(int iterations_count, double* result, double* initial, DataInitializer* data);

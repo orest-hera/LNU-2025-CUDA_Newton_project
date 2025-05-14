@@ -1,14 +1,14 @@
-#include "NewtonSolverFunctions.h"
+#include "NewtonSolverGPUFunctions.h"
 #include "DataInitializer.h"
 
-__global__ void NewtonSolverFunctions::gpu_dummy_warmup() {
+__global__ void NewtonSolverGPUFunctions::gpu_dummy_warmup() {
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
     if (idx < 32) {
         double tmp = idx * 0.1;
     }
 }
 
-__global__ void NewtonSolverFunctions::gpu_compute_func_values(double* points_d, double* indexes_d, double* vec_d, int MATRIX_SIZE, int version, int power) {
+__global__ void NewtonSolverGPUFunctions::gpu_compute_func_values(double* points_d, double* indexes_d, double* vec_d, int MATRIX_SIZE, int version, int power) {
     int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
     int gidx = blockDim.x * blockIdx.x + threadIdx.x;
     int gidy = blockDim.y * blockIdx.y + threadIdx.y;
@@ -22,8 +22,6 @@ __global__ void NewtonSolverFunctions::gpu_compute_func_values(double* points_d,
             value *= points_d[gidx];
         }
         shared_points[threadIdx.x] = value * indexes_d[gidy * MATRIX_SIZE + gidx];
-        //shared_points[threadIdx.x] = points_d[gidx] * indexes_d[gidy * MATRIX_SIZE + gidx];
-        //printf("points: %f %f\n", shared_points[threadIdx.x], shared_points[threadIdx.x + blockDim.x]);
     }
     else {
         shared_points[threadIdx.x] = 0.0;
@@ -87,7 +85,7 @@ __global__ void NewtonSolverFunctions::gpu_compute_func_values(double* points_d,
     }
 }
 
-__global__ void NewtonSolverFunctions::gpu_compute_delta_values(double* points_d, double* indexes_d, double* vec_d, int MATRIX_SIZE, int version) {
+__global__ void NewtonSolverGPUFunctions::gpu_compute_delta_values(double* points_d, double* indexes_d, double* vec_d, int MATRIX_SIZE, int version) {
     int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
     int gidx = blockDim.x * blockIdx.x + threadIdx.x;
     int gidy = blockDim.y * blockIdx.y + threadIdx.y;
@@ -97,7 +95,6 @@ __global__ void NewtonSolverFunctions::gpu_compute_delta_values(double* points_d
 
     if (gidx < MATRIX_SIZE) {
         shared_points[threadIdx.x] = points_d[gidx] * indexes_d[gidy * MATRIX_SIZE + gidx];
-        //printf("points: %f %f\n", shared_points[threadIdx.x], shared_points[threadIdx.x + blockDim.x]);
     }
     else {
         shared_points[threadIdx.x] = 0.0;
@@ -161,7 +158,7 @@ __global__ void NewtonSolverFunctions::gpu_compute_delta_values(double* points_d
     }
 }
 
-__global__ void NewtonSolverFunctions::gpu_compute_jacobian(double* points_d, double* indexes_d, double* jacobian_d, int MATRIX_SIZE, int power) {
+__global__ void NewtonSolverGPUFunctions::gpu_compute_jacobian(double* points_d, double* indexes_d, double* jacobian_d, int MATRIX_SIZE, int power) {
     extern __shared__ double shared_data[];
 
     int row = blockIdx.y;

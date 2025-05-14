@@ -9,7 +9,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\NewtonSolver.cpp">
+    <ClCompile Include="Source\NewtonSolverCPU.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\FileOperations.cpp">
@@ -21,24 +21,21 @@
     <ClCompile Include="Source\DataInitializer.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Equation.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="CuDssSolver.cpp">
+    <ClCompile Include="Source\Equation.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="Source\gpufunc.cu">
+    <CudaCompile Include="Source\NewtonSolverCUDA.cu">
       <Filter>Source</Filter>
     </CudaCompile>
     <CudaCompile Include="Source\kernel.cu">
       <Filter>Source</Filter>
     </CudaCompile>
-    <CudaCompile Include="CuDssSolver.cu">
+    <CudaCompile Include="Source\NewtonSolverCuDSS.cu">
       <Filter>Source</Filter>
     </CudaCompile>
-    <CudaCompile Include="NewtonSolverFunctions.cu">
+    <CudaCompile Include="Source\NewtonSolverGPUFunctions.cu">
       <Filter>Source</Filter>
     </CudaCompile>
   </ItemGroup>
@@ -49,7 +46,7 @@
     <ClInclude Include="Include\config.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="Include\CuDssSolver.h">
+    <ClInclude Include="Include\NewtonSolverCuDSS.h">
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="Include\EditionalTools.h">
@@ -58,13 +55,16 @@
     <ClInclude Include="Include\FileOperations.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="Include\NewtonSolver.h">
+    <ClInclude Include="Include\NewtonSolverCPU.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="Equation.h">
+    <ClInclude Include="Include\Equation.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="NewtonSolverFunctions.h">
+    <ClInclude Include="Include\NewtonSolverGPUFunctions.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="NewtonSolverCUDA.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>

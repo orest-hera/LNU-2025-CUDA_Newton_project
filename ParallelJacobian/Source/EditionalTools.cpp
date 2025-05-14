@@ -2,23 +2,8 @@
 #include "DataInitializer.h"
 #include "time.h"
 #include "stdlib.h"
-
-//void tools::generate_initial_indexes_matrix_and_vector_b(double* matrix, double* b, int MATRIX_SIZE) {
-//	int value = 0;
-//	double sum = 0;
-//	for (int i = 0; i < MATRIX_SIZE; i++) {
-//
-//		b[i] = 10;
-//
-//		value = 0;
-//		sum = 0;
-//		for (int j = 0; j < MATRIX_SIZE - 1; j++) {
-//			matrix[i * MATRIX_SIZE + j] = static_cast<double>(rand()) / RAND_MAX;
-//			sum += matrix[i * MATRIX_SIZE + j];
-//		}
-//		matrix[i * MATRIX_SIZE + MATRIX_SIZE - 1] = 10 - sum;
-//	}
-//}
+#include <iostream>
+#include <vector>
 
 void tools::generate_initial_indexes_matrix_and_vector_b(double* matrix, double* b, double* points, int MATRIX_SIZE, Equation* equation) {
     for (int i = 0; i < MATRIX_SIZE; i++) {
@@ -69,7 +54,35 @@ void tools::generate_sparse_initial_indexes_matrix_and_vector_b(double* matrix, 
     }
 }
 
-
 double tools::calculate_index_xn(double index, double x) {
 	return index * x;
+}
+
+void tools::print_solution(DataInitializer* data, int iterations_count = 0) {
+    std::cout << "Total Iterations count: " << iterations_count << "\n";
+
+#ifdef TOTAL_ELASPED_TIME
+    std::cout << "Total elapsed time: " << data->total_elapsed_time << "\n";
+#endif
+#ifdef SOLUTION_PRINT
+    std::cout << "Solution: \n";
+
+    for (int i = 0; i < data->MATRIX_SIZE; i++) {
+        std::cout << data->points_h[i] << " " << data->points_check[i] << "\n";
+    }
+#endif
+    std::cout << "\n";
+}
+
+void tools::print_intermediate_result(DataInitializer* data, int iteration_number, double error) {
+    std::cout << "\nIteration: " << iteration_number << "\n";
+    std::cout << "===============================================================\n";
+    std::cout << "Intermediate results: \n";
+    std::cout << "Compute func values: " << data->intermediate_results[0] << "\n";
+    std::cout << "Compute jacobian: " << data->intermediate_results[1] << "\n";
+    std::cout << "Compute inverse jacobian: " << data->intermediate_results[2] << "\n";
+    std::cout << "Compute delta: " << data->intermediate_results[3] << "\n";
+    std::cout << "Update points: " << data->intermediate_results[4] << "\n";
+    std::cout << "Error: " << error << "\n";
+    std::cout << "===============================================================\n";
 }

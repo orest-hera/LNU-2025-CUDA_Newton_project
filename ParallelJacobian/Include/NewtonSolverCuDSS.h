@@ -1,6 +1,5 @@
 #pragma once
 #include "DataInitializer.h"
-#include <cuda.h>
 
 class NewtonSolverCuDSS {
 private:
@@ -22,7 +21,6 @@ public:
 
 	NewtonSolverCuDSS(DataInitializer *data);
 	~NewtonSolverCuDSS();
-	double solve(double* matrix_A_h, double* vector_b_d, double* vector_x_h, double* vector_x_d);
+	void solve(double* matrix_A_h, double* vector_b_d, double* vector_x_h, double* vector_x_d);
 	void gpu_newton_solver_cudss();
-	void print_solutionn(int iterations_count, double* result, double* initial, DataInitializer* data);
 };

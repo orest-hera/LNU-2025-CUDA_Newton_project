@@ -14,7 +14,7 @@
 
 int main(int argc, char* argv[]) {
 
-    int matrix_size_max = 100;
+    int matrix_size_max = 1000;
 	int matrix_size_min = 100;
 	int stride = 100;
     int power = 1;
@@ -66,11 +66,14 @@ int main(int argc, char* argv[]) {
 			row[1] = data2->total_elapsed_time;
         }
 
+        //
+		// cuDSS
+        //
         {
             std::unique_ptr<DataInitializer> data3 = std::make_unique<DataInitializer>(size, 3);
             std::unique_ptr<NewtonSolverCuDSS> cuDssSolver = std::make_unique<NewtonSolverCuDSS>(data3.get());
             cuDssSolver->gpu_newton_solver_cudss();
-			row[2] = 1.0;
+			row[2] = data3->total_elapsed_time;
         }
 		file_op->append_file_data(row, size);
     }

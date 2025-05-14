@@ -74,13 +74,15 @@ void tools::print_solution(DataInitializer* data, int iterations_count = 0) {
     std::cout << "\n";
 }
 
-void tools::print_intermediate_result(DataInitializer* data, int iteration_number, double error) {
+void tools::print_intermediate_result(DataInitializer* data, int iteration_number, double error, bool isCudss) {
     std::cout << "\nIteration: " << iteration_number << "\n";
     std::cout << "===============================================================\n";
     std::cout << "Intermediate results: \n";
     std::cout << "Compute func values: " << data->intermediate_results[0] << "\n";
     std::cout << "Compute jacobian: " << data->intermediate_results[1] << "\n";
-    std::cout << "Compute inverse jacobian: " << data->intermediate_results[2] << "\n";
+    if (!isCudss) {
+        std::cout << "Compute inverse jacobian: " << data->intermediate_results[2] << "\n";
+    }
     std::cout << "Compute delta: " << data->intermediate_results[3] << "\n";
     std::cout << "Update points: " << data->intermediate_results[4] << "\n";
     std::cout << "Error: " << error << "\n";

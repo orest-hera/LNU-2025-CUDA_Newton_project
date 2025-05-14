@@ -6,6 +6,7 @@
 #include "math.h"
 #include "chrono"
 #include "cudss.h"
+#include "EditionalTools.h"
 
 NewtonSolverCuDSS::NewtonSolverCuDSS(DataInitializer* data) {
 	this->data = data;
@@ -54,14 +55,13 @@ void NewtonSolverCuDSS::parse_to_csr(int* csr_cols, int* csr_rows, double* csr_v
 	}
 }
 
-double NewtonSolverCuDSS::solve(double* matrix_A_h, double* vector_b_d, double* vector_x_h, double* vector_x_d) {
+void NewtonSolverCuDSS::solve(double* matrix_A_h, double* vector_b_d, double* vector_x_h, double* vector_x_d) {
 	parse_to_csr(csr_cols_h, csr_rows_h, csr_values_h, matrix_A_h);
 
 	cudaMemcpy(csr_cols_d, csr_cols_h, non_zero_count * sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(csr_rows_d, csr_rows_h, (data->MATRIX_SIZE + 1) * sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(csr_values_d, csr_values_h, non_zero_count * sizeof(double), cudaMemcpyHostToDevice);
 
-	auto start = std::chrono::high_resolution_clock::now();
 	cudssHandle_t handler;
 	cudssConfig_t solverConfig;
 	cudssData_t solverData;
@@ -94,23 +94,6 @@ double NewtonSolverCuDSS::solve(double* matrix_A_h, double* vector_b_d, double* 
 	cudaDeviceSynchronize();
 
 	cudaMemcpy(vector_x_h, vector_x_d, data->MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
-
-	auto end = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> elapsed = end - start;
-	std::cout << "Elapsed time: " << elapsed.count() << " seconds" << std::endl;
-	return elapsed.count();
-}
-
-void NewtonSolverCuDSS::print_solutionn(int iterations_count, double* result, double* initial, DataInitializer* data) {
-	std::cout << "Total Iterations count: " << iterations_count << "\n";
-#ifdef SOLUTION_PRINT
-	std::cout << "Solution: \n";
-
-	for (int i = 0; i < data->MATRIX_SIZE; i++) {
-		std::cout << result[i] << " " << initial[i] << "\n";
-	}
-#endif
-	std::cout << "\n";
 }
 
 void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
@@ -119,12 +102,13 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 	int version = prop.major;
 	FileOperations* file_op = new FileOperations();
 	std::string file_name = "gpu_cudss_newton_solver_" + std::to_string(data->MATRIX_SIZE) + ".csv";
-	file_op->create_file(file_name, 5);
-	file_op->append_file_headers("func_value_t,jacobian_value_t,inverse_jacobian_t,delta_value_t,update_points_t,matrix_size");
+	file_op->create_file(file_name, 4);
+	file_op->append_file_headers("func_value_t,jacobian_value_t,delta_value_t,update_points_t,matrix_size");
 
 	NewtonSolverGPUFunctions::gpu_dummy_warmup << <1, 32 >> > ();
 	cudaDeviceSynchronize();
 	std::cout << "GPU CuDss Newton solver\n";
+	std::cout << "Power: " << data->equation->get_power() << "\n";
 	int x_blocks_count = (data->MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
 	int iterations_count = 0;
 	double dx = 0;
@@ -147,7 +131,6 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 #ifdef INTERMEDIATE_RESULTS
 		auto start = std::chrono::high_resolution_clock::now();
 #endif
-		std::cout << "Power: " << data->equation->get_power() << "\n";
 		NewtonSolverGPUFunctions::gpu_compute_func_values << <gridDim, blockDim, blockDim.x * sizeof(double) >> > (
 			data->points_d, data->indexes_d, data->intermediate_funcs_value_d, data->MATRIX_SIZE, version, data->equation->get_power());
 		cudaDeviceSynchronize();
@@ -179,23 +162,29 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 		data->intermediate_results[1] = std::chrono::duration<double>(end - start).count();
 		start = std::chrono::high_resolution_clock::now();
 #endif
-		for (int i = 0; i < data->MATRIX_SIZE; i++) {
-			data->funcs_value_h[i] *= -1;
-		}
-		cudaMemcpy(data->funcs_value_d, data->funcs_value_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 
 		solve(data->jacobian_h, data->funcs_value_d, data->delta_h, data->delta_d);
+#ifdef INTERMEDIATE_RESULTS
+		end = std::chrono::high_resolution_clock::now();
+		data->intermediate_results[3] = std::chrono::duration<double>(end - start).count();
+		start = std::chrono::high_resolution_clock::now();
+#endif
 		dx = 0.0;
 		for (size_t i = 0; i < data->MATRIX_SIZE; ++i) {
-			data->points_h[i] += data->delta_h[i];
+			data->points_h[i] -= data->delta_h[i];
 			dx = std::max(dx, std::abs(data->delta_h[i]));
 		}
-		std::cout << "dx: " << dx << "\n";
+
+#ifdef INTERMEDIATE_RESULTS
+		end = std::chrono::high_resolution_clock::now();
+		data->intermediate_results[4] = std::chrono::duration<double>(end - start).count();
+#endif
+		tools::print_intermediate_result(data, iterations_count, dx, true);
 		cudaMemcpy(data->points_d, data->points_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
+		file_op->append_file_data(data->intermediate_results, data->MATRIX_SIZE);
 	} while (dx > TOLERANCE);
 
 	auto end_total = std::chrono::high_resolution_clock::now();
-	auto total_time = std::chrono::duration<double>(end_total - start_total).count();
-	std::cout << "Total time: " << total_time << "\n";
-	print_solutionn(iterations_count, data->points_h, data->points_check, data);
+	data->total_elapsed_time = std::chrono::duration<double>(end_total - start_total).count();
+	tools::print_solution(data, iterations_count);
 }

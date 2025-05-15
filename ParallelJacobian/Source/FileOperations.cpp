@@ -8,7 +8,7 @@ FileOperations::FileOperations() {
 
 void FileOperations::create_file(std::string file_name, int number_of_columns) {
 	if (!isFileExist) {
-		std::string file_path = "D:\\Study\\Diploma\\Programs\\CUDA_Newton_project\\ParallelJacobian\\x64\\Debug\\results\\" + file_name;
+		std::string file_path = "../results/" + file_name;
 		my_file.open(file_path);
 		std::cout << "File created: " << file_name << std::endl;
 		isFileExist = true;

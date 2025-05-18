@@ -113,6 +113,6 @@ void DataInitializer::initialize_indexes_matrix_and_b() {
         }
     }
 
-    tools::generate_initial_indexes_matrix_and_vector_b(indexes_h, vector_b_h, points_check, MATRIX_SIZE, equation);
+    tools::generate_sparse_initial_indexes_matrix_and_vector_b(indexes_h, vector_b_h, points_check, MATRIX_SIZE, equation, 10);
     //tools::generate_sparse_initial_indexes_matrix_and_vector_b(indexes_h, vector_b_h, 500, MATRIX_SIZE);
 }

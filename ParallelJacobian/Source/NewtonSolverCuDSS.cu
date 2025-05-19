@@ -227,6 +227,7 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 	cudaMemcpy(csr_cols_d, csr_cols_h, non_zero_count * sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(csr_rows_d, csr_rows_h, (data->MATRIX_SIZE + 1) * sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(csr_values_d, csr_values_h, non_zero_count * sizeof(double), cudaMemcpyHostToDevice);
+	std::cout << "Non-zero count: " << non_zero_count << "\n";
 	do {
 		iterations_count++;
 

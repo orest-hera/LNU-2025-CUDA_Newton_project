@@ -61,6 +61,21 @@ void tools::generate_sparse_initial_indexes_matrix_and_vector_b(
     }
 
     for (int i = 0; i < MATRIX_SIZE; i++) {
+		double sum = 0.0;
+		double diagonal_value = 0.0;
+        for (int j = 0; j < MATRIX_SIZE; j++) {
+            if (j != i) {
+                sum += matrix[i * MATRIX_SIZE + j];
+            }
+        }
+
+        diagonal_value = matrix[i * MATRIX_SIZE + i];
+        if ((sum + 1e-7) >= diagonal_value) {
+			matrix[i * MATRIX_SIZE + i] = sum - diagonal_value + 1.0;
+        }
+    }
+
+    for (int i = 0; i < MATRIX_SIZE; i++) {
         b[i] = 0;
         for (int j = 0; j < MATRIX_SIZE; j++) {
             if (matrix[i * MATRIX_SIZE + j] != 0.0) {

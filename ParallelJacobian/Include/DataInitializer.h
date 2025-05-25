@@ -11,6 +11,7 @@
 
 struct DataInitializer {
 public:
+	int file_name;
 	int zeros_elements_per_row;
 	Equation* equation{ nullptr };
 	int MATRIX_SIZE{ 0 };
@@ -30,6 +31,6 @@ public:
 
 	void initialize_indexes_matrix_and_b();
  
-	DataInitializer(int MATRIX_SIZE, int zeros_elements_per_row, int power = 1);
+	DataInitializer(int MATRIX_SIZE, int zeros_elements_per_row, int file_name, int power = 1);
 	~DataInitializer();
 };

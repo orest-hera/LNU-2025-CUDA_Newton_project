@@ -21,6 +21,6 @@ public:
 		* delta_d{ nullptr },
 		* funcs_value_d{ nullptr };
 
-	DataInitializerCUDA(int MATRIX_SIZE, int zeros_elements_per_row, int power);
+	DataInitializerCUDA(int MATRIX_SIZE, int zeros_elements_per_row, int file_name, int power);
 	~DataInitializerCUDA();
 };

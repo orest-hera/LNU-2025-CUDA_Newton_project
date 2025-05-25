@@ -4,10 +4,9 @@
 #include "stdlib.h"
 #include <iostream>
 #include <vector>
-#include <cstdlib>    // rand(), RAND_MAX
-#include <vector>     // std::vector
-#include <numeric>    // std::iota
-#include <algorithm>  // std::shuffle (або std::random_shuffle для старого C++)
+#include <cstdlib>
+#include <numeric>
+#include <algorithm>
 #include <random> 
 
 void tools::generate_initial_indexes_matrix_and_vector_b(double* matrix, double* b, double* points, int MATRIX_SIZE, Equation* equation) {

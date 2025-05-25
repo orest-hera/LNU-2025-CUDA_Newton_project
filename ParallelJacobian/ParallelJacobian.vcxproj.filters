@@ -47,6 +47,9 @@
     <CudaCompile Include="Source\NewtonSolverGPUFunctions.cu">
       <Filter>Source</Filter>
     </CudaCompile>
+    <CudaCompile Include="kernel2.cu">
+      <Filter>Source</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\config.h">

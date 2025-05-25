@@ -21,6 +21,7 @@
     <ClCompile Include="Source\NewtonSolverCPU.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="kernel2.cu" />
     <CudaCompile Include="Source\NewtonSolverCuDSS.cu" />
     <CudaCompile Include="Source\NewtonSolverCUDA.cu" />
     <CudaCompile Include="Source\kernel.cu" />

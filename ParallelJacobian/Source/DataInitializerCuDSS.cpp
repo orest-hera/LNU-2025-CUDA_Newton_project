@@ -1,7 +1,7 @@
 #include "DataInitializerCuDSS.h"
 
-DataInitializerCuDSS::DataInitializerCuDSS(int MATRIX_SIZE, int zeros_elements_per_row, int power)
-	: DataInitializer(MATRIX_SIZE, zeros_elements_per_row, power) {
+DataInitializerCuDSS::DataInitializerCuDSS(int MATRIX_SIZE, int zeros_elements_per_row, int file_name, int power)
+	: DataInitializer(MATRIX_SIZE, zeros_elements_per_row, file_name, power) {
 	// Allocate memory for CSR representation
 	non_zero_count = count_non_zero_elements(indexes_h);
 	csr_values_h = new double[non_zero_count];

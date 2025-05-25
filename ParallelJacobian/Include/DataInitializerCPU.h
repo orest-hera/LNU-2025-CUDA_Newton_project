@@ -9,6 +9,6 @@ public:
 		* inverse_jacobian_h{ nullptr },
 		* delta_h{ nullptr };
 
-	DataInitializerCPU(int MATRIX_SIZE, int zeros_elements_per_row, int power);
+	DataInitializerCPU(int MATRIX_SIZE, int zeros_elements_per_row, int file_name, int power);
 	~DataInitializerCPU();
 };

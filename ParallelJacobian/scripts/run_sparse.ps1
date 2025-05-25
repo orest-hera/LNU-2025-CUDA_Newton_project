@@ -22,9 +22,9 @@ if ($param3) { $arguments += $param3 }
 
 Write-Host "Running ParallelJacobian.exe..."
 if ($arguments.Count -eq 0) {
-    Start-Process -FilePath "..\build\Debug\ParallelJacobian_DimensionStudy.exe" -Wait
+    Start-Process -FilePath "..\build\Debug\ParallelJacobian_SparsityStudy.exe" -Wait
 } else {
-    Start-Process -FilePath "..\build\Debug\ParallelJacobian_DimensionStudy.exe" -ArgumentList $arguments -Wait
+    Start-Process -FilePath "..\build\Debug\ParallelJacobian_SparsityStudy.exe" -ArgumentList $arguments -Wait
 }
 
 Write-Host "Checking for pip..."

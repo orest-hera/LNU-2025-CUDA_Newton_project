@@ -4,9 +4,10 @@
 #include "stdlib.h"
 #include "iostream"
 
-DataInitializer::DataInitializer(int MATRIX_SIZE, int zeros_elements_per_row, int power) {
+DataInitializer::DataInitializer(int MATRIX_SIZE, int zeros_elements_per_row, int file_name, int power) {
 	this->equation = new Equation(power);
 	this->MATRIX_SIZE = MATRIX_SIZE;
+	this->file_name = file_name;
 	this->zeros_elements_per_row = zeros_elements_per_row;
     int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
 

@@ -37,6 +37,6 @@ public:
 
 	int count_non_zero_elements(double* matrix_A);
 
-	DataInitializerCuDSS(int MATRIX_SIZE, int zeros_elements_per_row, int power);
+	DataInitializerCuDSS(int MATRIX_SIZE, int zeros_elements_per_row, int file_name, int power);
 	~DataInitializerCuDSS();
 };

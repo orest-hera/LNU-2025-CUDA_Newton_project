@@ -12,6 +12,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\DataInitializer.cpp" />
+    <ClCompile Include="Source\DataInitializerCPU.cpp" />
+    <ClCompile Include="Source\DataInitializerCUDA.cpp" />
+    <ClCompile Include="Source\DataInitializerCuDSS.cpp" />
     <ClCompile Include="Source\EditionalTools.cpp" />
     <ClCompile Include="Source\Equation.cpp" />
     <ClCompile Include="Source\FileOperations.cpp" />
@@ -25,14 +28,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\config.h" />
-    <ClInclude Include="Include\NewtonSolverCuDSS.h" />
     <ClInclude Include="Include\DataInitializer.h" />
+    <ClInclude Include="Include\DataInitializerCPU.h" />
+    <ClInclude Include="Include\DataInitializerCUDA.h" />
+    <ClInclude Include="Include\DataInitializerCuDSS.h" />
     <ClInclude Include="Include\EditionalTools.h" />
     <ClInclude Include="Include\Equation.h" />
     <ClInclude Include="Include\FileOperations.h" />
-    <ClInclude Include="Include\NewtonSolverCPU.h" />
+    <ClInclude Include="Include\NewtonSolverCUDA.h" />
     <ClInclude Include="Include\NewtonSolverGPUFunctions.h" />
-    <ClInclude Include="NewtonSolverCUDA.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{89DC24C0-43B3-47B1-9280-43316A2B0495}</ProjectGuid>

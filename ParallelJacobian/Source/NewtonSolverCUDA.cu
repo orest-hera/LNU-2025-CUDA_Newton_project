@@ -3,18 +3,18 @@
 #include <string>
 #include "cuda_runtime.h"
 #include "FileOperations.h"
-#include "../Include/NewtonSolverGPUFunctions.h"
+#include "NewtonSolverGPUFunctions.h"
 #include <EditionalTools.h>
-#include "../NewtonSolverCUDA.h"
+#include "NewtonSolverCUDA.h"
 #include <chrono>
 
-NewtonSolverCUDA::NewtonSolverCUDA(DataInitializer* dataInitializer) {
+NewtonSolverCUDA::NewtonSolverCUDA(DataInitializerCUDA* dataInitializer) {
 	data = dataInitializer;
 }
 
 NewtonSolverCUDA::~NewtonSolverCUDA() {
 }
-void NewtonSolverCUDA::gpu_cublasInverse(DataInitializer* data) {
+void NewtonSolverCUDA::gpu_cublasInverse(DataInitializerCUDA* data) {
     cublasStatus_t status2 = cublasDgetrfBatched(data->cublasContextHandler, data->MATRIX_SIZE, data->cublas_ajacobian_d, data->MATRIX_SIZE, data->cublas_pivot, data->cublas_info, 1);
     cublasStatus_t status = cublasDgetriBatched(data->cublasContextHandler, data->MATRIX_SIZE, (const double**)data->cublas_ajacobian_d, data->MATRIX_SIZE, data->cublas_pivot, data->cublas_ainverse_jacobian_d, data->MATRIX_SIZE, data->cublas_info, 1);
 }
@@ -79,7 +79,7 @@ void NewtonSolverCUDA::gpu_newton_solve() {
             data->points_d, data->indexes_d, data->jacobian_d, data->MATRIX_SIZE, data->equation->get_power());
         cudaDeviceSynchronize();
 
-        cudaMemcpy(data->jacobian_h, data->jacobian_d, data->MATRIX_SIZE * data->MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
+        //cudaMemcpy(data->jacobian_h, data->jacobian_d, data->MATRIX_SIZE * data->MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
 
 #ifdef INTERMEDIATE_RESULTS
         end = std::chrono::high_resolution_clock::now();

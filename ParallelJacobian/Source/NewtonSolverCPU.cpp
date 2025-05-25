@@ -4,7 +4,7 @@
 #include "NewtonSolverCPU.h"
 #include "EditionalTools.h"
 
-NewtonSolverCPU::NewtonSolverCPU(DataInitializer* dataInitializer) {
+NewtonSolverCPU::NewtonSolverCPU(DataInitializerCPU* dataInitializer) {
 	data = dataInitializer;
 }
 

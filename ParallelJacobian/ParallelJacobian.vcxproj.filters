@@ -18,10 +18,19 @@
     <ClCompile Include="Source\EditionalTools.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\DataInitializer.cpp">
+    <ClCompile Include="Source\Equation.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Equation.cpp">
+    <ClCompile Include="Source\DataInitializerCPU.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DataInitializerCUDA.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DataInitializerCuDSS.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DataInitializer.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
@@ -40,13 +49,7 @@
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Include\DataInitializer.h">
-      <Filter>Include</Filter>
-    </ClInclude>
     <ClInclude Include="Include\config.h">
-      <Filter>Include</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\NewtonSolverCuDSS.h">
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="Include\EditionalTools.h">
@@ -55,16 +58,25 @@
     <ClInclude Include="Include\FileOperations.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="Include\NewtonSolverCPU.h">
-      <Filter>Include</Filter>
-    </ClInclude>
     <ClInclude Include="Include\Equation.h">
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="Include\NewtonSolverGPUFunctions.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="NewtonSolverCUDA.h">
+    <ClInclude Include="Include\DataInitializerCPU.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\DataInitializerCUDA.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\DataInitializerCuDSS.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\NewtonSolverCUDA.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\DataInitializer.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>

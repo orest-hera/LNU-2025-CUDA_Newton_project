@@ -1,5 +1,5 @@
 #pragma once
-#include "DataInitializer.h"
+#include "DataInitializerCPU.h"
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include "config.h"
@@ -7,7 +7,7 @@
 
 struct NewtonSolverCPU {
 private:
-	DataInitializer * data;
+	DataInitializerCPU * data;
 
 	void cpu_computeVec();
 	double cpu_compute_derivative(int rowIndex, int colIndex);
@@ -16,7 +16,7 @@ private:
 	void cpu_compute_delta();
 
 public:
-	NewtonSolverCPU(DataInitializer* data);
+	NewtonSolverCPU(DataInitializerCPU* data);
 	~NewtonSolverCPU();
 
 	void cpu_newton_solve();

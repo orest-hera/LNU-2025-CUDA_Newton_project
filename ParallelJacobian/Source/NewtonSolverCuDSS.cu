@@ -1,33 +1,18 @@
 #include "NewtonSolverCuDSS.h"
 #include "NewtonSolverGPUFunctions.h"
-#include "DataInitializer.h"
 #include "FileOperations.h"
 #include "iostream"
 #include "math.h"
 #include "chrono"
 #include "cudss.h"
 #include "EditionalTools.h"
+#include <DataInitializerCuDSS.h>
 
-NewtonSolverCuDSS::NewtonSolverCuDSS(DataInitializer* data) {
+NewtonSolverCuDSS::NewtonSolverCuDSS(DataInitializerCuDSS* data) {
 	this->data = data;
-
-	non_zero_count = count_non_zero_elements(data->indexes_h);
-	csr_cols_h = new int[non_zero_count];
-	csr_rows_h = new int[data->MATRIX_SIZE + 1];
-	csr_values_h = new double[non_zero_count];
-
-	cudaMalloc((void**)&csr_values_d, non_zero_count * sizeof(double));
-	cudaMalloc((void**)&csr_rows_d, (data->MATRIX_SIZE + 1) * sizeof(int));
-	cudaMalloc((void**)&csr_cols_d, non_zero_count * sizeof(int));
 }
 
 NewtonSolverCuDSS::~NewtonSolverCuDSS() {
-	delete[] csr_cols_h;
-	delete[] csr_rows_h;
-	delete[] csr_values_h;
-	cudaFree(csr_values_d);
-	cudaFree(csr_rows_d);
-	cudaFree(csr_cols_d);
 }
 
 int NewtonSolverCuDSS::count_non_zero_elements(double* matrix_A) {
@@ -56,40 +41,9 @@ void NewtonSolverCuDSS::parse_to_csr(int* csr_cols, int* csr_rows, double* csr_v
 }
 
 void NewtonSolverCuDSS::solve(double* matrix_A_h, double* vector_b_d, double* vector_x_h, double* vector_x_d) {
-	//parse_to_csr(csr_cols_h, csr_rows_h, csr_values_h, matrix_A_h);
-
-	//cudaMemcpy(csr_cols_d, csr_cols_h, non_zero_count * sizeof(int), cudaMemcpyHostToDevice);
-	//cudaMemcpy(csr_rows_d, csr_rows_h, (data->MATRIX_SIZE + 1) * sizeof(int), cudaMemcpyHostToDevice);
-	//cudaMemcpy(csr_values_d, csr_values_h, non_zero_count * sizeof(double), cudaMemcpyHostToDevice);
-
-	cudssHandle_t handler;
-	cudssConfig_t solverConfig;
-	cudssData_t solverData;
-	cudssCreate(&handler);
-
-	cudssConfigCreate(&solverConfig);
-	cudssDataCreate(handler, &solverData);
-
-	cudssMatrix_t x, b;
-	cudssMatrixCreateDn(&b, data->MATRIX_SIZE, 1, data->MATRIX_SIZE, vector_b_d, CUDA_R_64F, CUDSS_LAYOUT_COL_MAJOR);
-	cudssMatrixCreateDn(&x, data->MATRIX_SIZE, 1, data->MATRIX_SIZE, vector_x_d, CUDA_R_64F, CUDSS_LAYOUT_COL_MAJOR);
-
-	cudssMatrix_t A;
-	cudssMatrixType_t mtype = CUDSS_MTYPE_GENERAL;
-	cudssMatrixViewType_t mvtype = CUDSS_MVIEW_FULL;
-	cudssIndexBase_t base = CUDSS_BASE_ZERO;
-	cudssMatrixCreateCsr(&A, data->MATRIX_SIZE, data->MATRIX_SIZE, non_zero_count, csr_rows_d, NULL, csr_cols_d, data->jacobian_d, CUDA_R_32I, CUDA_R_64F, mtype, mvtype, base);
-
-	cudssExecute(handler, CUDSS_PHASE_ANALYSIS, solverConfig, solverData, A, x, b);
-	cudssExecute(handler, CUDSS_PHASE_FACTORIZATION, solverConfig, solverData, A, x, b);
-	cudssExecute(handler, CUDSS_PHASE_SOLVE, solverConfig, solverData, A, x, b);
-
-	cudssMatrixDestroy(A);
-	cudssMatrixDestroy(x);
-	cudssMatrixDestroy(b);
-	cudssDataDestroy(handler, solverData);
-	cudssConfigDestroy(solverConfig);
-	cudssDestroy(handler);
+	cudssExecute(data->handler, CUDSS_PHASE_ANALYSIS, data->solverConfig, data->solverData, data->A, data->x, data->b);
+	cudssExecute(data->handler, CUDSS_PHASE_FACTORIZATION, data->solverConfig, data->solverData, data->A, data->x, data->b);
+	cudssExecute(data->handler, CUDSS_PHASE_SOLVE, data->solverConfig, data->solverData, data->A, data->x, data->b);
 
 	cudaDeviceSynchronize();
 
@@ -217,17 +171,15 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 	auto start_total = std::chrono::high_resolution_clock::now();
 
 	cudaMemcpy(data->points_d, data->points_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
-	cudaMemcpy(data->indexes_d, data->indexes_h, data->MATRIX_SIZE * data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
-	for (size_t i = 0; i < data->MATRIX_SIZE; ++i) {
-		data->points_h[i] += data->delta_h[i];
-		dx = std::max(dx, std::abs(data->delta_h[i]));
-	}
 
-	parse_to_csr(csr_cols_h, csr_rows_h, csr_values_h, data->indexes_h);
-	cudaMemcpy(csr_cols_d, csr_cols_h, non_zero_count * sizeof(int), cudaMemcpyHostToDevice);
-	cudaMemcpy(csr_rows_d, csr_rows_h, (data->MATRIX_SIZE + 1) * sizeof(int), cudaMemcpyHostToDevice);
-	cudaMemcpy(csr_values_d, csr_values_h, non_zero_count * sizeof(double), cudaMemcpyHostToDevice);
-	std::cout << "Non-zero count: " << non_zero_count << "\n";
+	parse_to_csr(data->csr_cols_h, data->csr_rows_h, data->csr_values_h, data->indexes_h);
+	cudaMemcpy(data->csr_cols_d, data->csr_cols_h, data->non_zero_count * sizeof(int), cudaMemcpyHostToDevice);
+	cudaMemcpy(data->csr_rows_d, data->csr_rows_h, (data->MATRIX_SIZE + 1) * sizeof(int), cudaMemcpyHostToDevice);
+	cudaMemcpy(data->csr_values_d, data->csr_values_h, data->non_zero_count * sizeof(double), cudaMemcpyHostToDevice);
+	delete[] data->csr_values_h;
+	delete[] data->csr_rows_h;
+	delete[] data->csr_cols_h;
+	std::cout << "Non-zero count: " << data->non_zero_count << "\n";
 	do {
 		iterations_count++;
 
@@ -240,9 +192,9 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 
 		gpu_compute_func_values_csr << <blockss, threads_per_blocks >> > (
 			data->points_d,
-			csr_values_d,
-			csr_cols_d,
-			csr_rows_d,
+			data->csr_values_d,
+			data->csr_cols_d,
+			data->csr_rows_d,
 			data->funcs_value_d,
 			data->MATRIX_SIZE,
 			data->equation->get_power()
@@ -255,23 +207,17 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 		}
 
 		cudaMemcpy(data->funcs_value_d, data->funcs_value_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
-
+		cudaDeviceSynchronize();
 #ifdef INTERMEDIATE_RESULTS
 		auto end = std::chrono::high_resolution_clock::now();
 		data->intermediate_results[0] = std::chrono::duration<double>(end - start).count();
 		start = std::chrono::high_resolution_clock::now();
 #endif
 		int threads_per_block = 256;
-		int blocks = (non_zero_count + threads_per_block - 1) / threads_per_block;
-		gpu_compute_jacobian_csr << <blocks, threads_per_block >> > (csr_values_d, csr_cols_d, csr_rows_d, data->points_d, data->jacobian_d, data->equation->get_power(), data->MATRIX_SIZE, non_zero_count);
+		int blocks = (data->non_zero_count + threads_per_block - 1) / threads_per_block;
+		gpu_compute_jacobian_csr << <blocks, threads_per_block >> > (data->csr_values_d, data->csr_cols_d, data->csr_rows_d, data->points_d, data->jacobian_d, data->equation->get_power(), data->MATRIX_SIZE, data->non_zero_count);
 
-		cudaMemcpy(data->jacobian_h, data->jacobian_d, data->MATRIX_SIZE * data->MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
-
-		//NewtonSolverGPUFunctions::gpu_compute_jacobian << <gridDim, blockDim, 2 * blockDim.x * sizeof(double) >> > (
-		//	data->points_d, data->indexes_d, data->jacobian_d, data->MATRIX_SIZE, data->equation->get_power());
 		cudaDeviceSynchronize();
-
-		//cudaMemcpy(data->jacobian_h, data->jacobian_d, data->MATRIX_SIZE * data->MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
 
 #ifdef INTERMEDIATE_RESULTS
 		end = std::chrono::high_resolution_clock::now();
@@ -280,6 +226,7 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 #endif
 
 		solve(data->jacobian_d, data->funcs_value_d, data->delta_h, data->delta_d);
+		cudaDeviceSynchronize();
 #ifdef INTERMEDIATE_RESULTS
 		end = std::chrono::high_resolution_clock::now();
 		data->intermediate_results[3] = std::chrono::duration<double>(end - start).count();

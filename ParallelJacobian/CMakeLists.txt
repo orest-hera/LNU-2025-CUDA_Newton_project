@@ -64,7 +64,7 @@ target_link_libraries(ParallelJacobian_SparsityStudy PRIVATE my_common_lib cudss
 
 set(CMAKE_BUILD_TYPE Release)
 
-set_target_properties(ParallelJacobian_DimensionStudy ParallelJacobian_SparsityStudy PROPERTIES
+set_target_properties(ParallelJacobian_DimensionStudy ParallelJacobian_SparsityStudy my_common_lib PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON # Generally good practice for large CUDA projects
     CUDA_ARCHITECTURES "native" # Builds for the detected GPU architecture
 )

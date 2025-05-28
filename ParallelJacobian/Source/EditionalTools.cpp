@@ -135,6 +135,21 @@ void tools::print_solution(DataInitializer* data, int iterations_count = 0) {
     }
 #endif
     std::cout << "\n";
+
+    bool isCorrect = true;
+
+    for (int i = 0; i < data->MATRIX_SIZE; i++) {
+        if (std::abs(data->points_h[i] - data->points_check[i]) > 1e-5) {
+            isCorrect = false;
+        }
+    }
+
+    if (isCorrect) {
+        std::cout << "Solution is correct!" << "\n";
+    }
+    else {
+        std::cout << "Solution is incorrect!" << "\n";
+    }
 }
 
 void tools::print_intermediate_result(DataInitializer* data, int iteration_number, double error, bool isCudss) {

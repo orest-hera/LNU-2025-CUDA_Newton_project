@@ -52,21 +52,21 @@ int main(int argc, char* argv[]) {
         //
         // CPY
         //
-        //{
-        //    std::unique_ptr<DataInitializerCPU> data = std::make_unique<DataInitializerCPU>(matrix_size, size, size, 3);
-        //    std::unique_ptr<NewtonSolverCPU> newton_solver = std::make_unique<NewtonSolverCPU>(data.get());
-        //    newton_solver->cpu_newton_solve();
-        //    row[0] = data->total_elapsed_time;
-        //}
-        ////
-        //// GPU
-        ////
-        //{
-        //    std::unique_ptr<DataInitializerCUDA> data2 = std::make_unique<DataInitializerCUDA>(matrix_size, size, size, 3);
-        //    std::unique_ptr<NewtonSolverCUDA> newton_solver2 = std::make_unique<NewtonSolverCUDA>(data2.get());
-        //    newton_solver2->gpu_newton_solve();
-        //    row[1] = data2->total_elapsed_time;
-        //}
+        {
+            std::unique_ptr<DataInitializerCPU> data = std::make_unique<DataInitializerCPU>(matrix_size, size, size, 3);
+            std::unique_ptr<NewtonSolverCPU> newton_solver = std::make_unique<NewtonSolverCPU>(data.get());
+            newton_solver->cpu_newton_solve();
+            row[0] = data->total_elapsed_time;
+        }
+        //
+        // GPU
+        //
+        {
+            std::unique_ptr<DataInitializerCUDA> data2 = std::make_unique<DataInitializerCUDA>(matrix_size, size, size, 3);
+            std::unique_ptr<NewtonSolverCUDA> newton_solver2 = std::make_unique<NewtonSolverCUDA>(data2.get());
+            newton_solver2->gpu_newton_solve();
+            row[1] = data2->total_elapsed_time;
+        }
         //
         // cuDSS
         //

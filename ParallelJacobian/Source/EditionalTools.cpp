@@ -143,11 +143,11 @@ void tools::print_intermediate_result(DataInitializer* data, int iteration_numbe
     std::cout << "Intermediate results: \n";
     std::cout << "Compute func values: " << data->intermediate_results[0] << "\n";
     std::cout << "Compute jacobian: " << data->intermediate_results[1] << "\n";
-    if (!isCudss) {
-        std::cout << "Compute inverse jacobian: " << data->intermediate_results[2] << "\n";
-    }
+    std::cout << "Compute inverse jacobian: " << data->intermediate_results[2] << "\n";
     std::cout << "Compute delta: " << data->intermediate_results[3] << "\n";
-    std::cout << "Update points: " << data->intermediate_results[4] << "\n";
+    if (!isCudss) {
+        std::cout << "Update points: " << data->intermediate_results[4] << "\n";
+    }
     std::cout << "Error: " << error << "\n";
     std::cout << "===============================================================\n";
 }

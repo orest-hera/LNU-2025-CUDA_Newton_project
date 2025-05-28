@@ -229,7 +229,7 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 		cudaDeviceSynchronize();
 #ifdef INTERMEDIATE_RESULTS
 		end = std::chrono::high_resolution_clock::now();
-		data->intermediate_results[3] = std::chrono::duration<double>(end - start).count();
+		data->intermediate_results[2] = std::chrono::duration<double>(end - start).count();
 		start = std::chrono::high_resolution_clock::now();
 #endif
 		dx = 0.0;
@@ -240,7 +240,7 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 
 #ifdef INTERMEDIATE_RESULTS
 		end = std::chrono::high_resolution_clock::now();
-		data->intermediate_results[4] = std::chrono::duration<double>(end - start).count();
+		data->intermediate_results[3] = std::chrono::duration<double>(end - start).count();
 #endif
 		tools::print_intermediate_result(data, iterations_count, dx, true);
 		cudaMemcpy(data->points_d, data->points_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);

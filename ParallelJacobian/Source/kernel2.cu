@@ -15,10 +15,10 @@
 
 int main(int argc, char* argv[]) {
 
-    int matrix_size = 100;
+    int matrix_size = 10000;
 
-    int zeros_per_row_max = 100;
-    int zeros_per_row_min = 100;
+    int zeros_per_row_max = 29995;
+    int zeros_per_row_min = 29995;
     int stride = 100;
     int power = 1;
     for (int i = 0; i < argc; i++) {
@@ -58,7 +58,6 @@ int main(int argc, char* argv[]) {
             newton_solver->cpu_newton_solve();
             row[0] = data->total_elapsed_time;
         }
-
         //
         // GPU
         //
@@ -68,7 +67,6 @@ int main(int argc, char* argv[]) {
             newton_solver2->gpu_newton_solve();
             row[1] = data2->total_elapsed_time;
         }
-
         //
         // cuDSS
         //

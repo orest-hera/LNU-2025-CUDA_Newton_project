@@ -15,8 +15,8 @@
 
 int main(int argc, char* argv[]) {
 
-   int matrix_size_max = 1000;
-	int matrix_size_min = 1000;
+   int matrix_size_max = 10;
+	int matrix_size_min = 10;
 	int stride = 100;
    int power = 1;
    for (int i = 0; i < argc; i++) {
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
            std::unique_ptr<DataInitializerCPU> data = std::make_unique<DataInitializerCPU>(size, 0, size, 3);
            std::unique_ptr<NewtonSolverCPU> newton_solver = std::make_unique<NewtonSolverCPU>(data.get());
            newton_solver->cpu_newton_solve();
-			row[0] = data->total_elapsed_time;;
+			row[0] = 0;
        }
 
        //

@@ -5,6 +5,8 @@ VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ParallelJacobian", "ParallelJacobian.vcxproj", "{89DC24C0-43B3-47B1-9280-43316A2B0495}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tests", "..\Tests\Tests.vcxproj", "{EA10FD7E-C86F-4813-B92D-B2395B6AE6F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -15,6 +17,10 @@ Global
 		{89DC24C0-43B3-47B1-9280-43316A2B0495}.Debug|x64.Build.0 = Debug|x64
 		{89DC24C0-43B3-47B1-9280-43316A2B0495}.Release|x64.ActiveCfg = Release|x64
 		{89DC24C0-43B3-47B1-9280-43316A2B0495}.Release|x64.Build.0 = Release|x64
+		{EA10FD7E-C86F-4813-B92D-B2395B6AE6F6}.Debug|x64.ActiveCfg = Debug|x64
+		{EA10FD7E-C86F-4813-B92D-B2395B6AE6F6}.Debug|x64.Build.0 = Debug|x64
+		{EA10FD7E-C86F-4813-B92D-B2395B6AE6F6}.Release|x64.ActiveCfg = Release|x64
+		{EA10FD7E-C86F-4813-B92D-B2395B6AE6F6}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -47,7 +47,7 @@
     <CudaCompile Include="Source\NewtonSolverGPUFunctions.cu">
       <Filter>Source</Filter>
     </CudaCompile>
-    <CudaCompile Include="kernel2.cu">
+    <CudaCompile Include="Source\kernel2.cu">
       <Filter>Source</Filter>
     </CudaCompile>
   </ItemGroup>

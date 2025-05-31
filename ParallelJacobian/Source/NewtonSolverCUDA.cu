@@ -75,7 +75,7 @@ void NewtonSolverCUDA::gpu_newton_solve() {
         start = std::chrono::high_resolution_clock::now();
 #endif
 
-        NewtonSolverGPUFunctions::gpu_compute_jacobian << <gridDim, blockDim, 2 * blockDim.x * sizeof(double) >> > (
+        NewtonSolverGPUFunctions::gpu_compute_jacobian << <gridDim, blockDim >> > (
             data->points_d, data->indexes_d, data->jacobian_d, data->MATRIX_SIZE, data->equation->get_power());
         cudaDeviceSynchronize();
 

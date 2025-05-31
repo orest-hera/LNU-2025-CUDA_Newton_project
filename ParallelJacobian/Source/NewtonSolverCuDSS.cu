@@ -41,7 +41,10 @@ void NewtonSolverCuDSS::parse_to_csr(int* csr_cols, int* csr_rows, double* csr_v
 }
 
 void NewtonSolverCuDSS::solve(double* matrix_A_h, double* vector_b_d, double* vector_x_h, double* vector_x_d) {
-	cudssExecute(data->handler, CUDSS_PHASE_ANALYSIS, data->solverConfig, data->solverData, data->A, data->x, data->b);
+	if (!data->analyzed) {
+		cudssExecute(data->handler, CUDSS_PHASE_ANALYSIS, data->solverConfig, data->solverData, data->A, data->x, data->b);
+		data->analyzed = true;
+	}
 	cudssExecute(data->handler, CUDSS_PHASE_FACTORIZATION, data->solverConfig, data->solverData, data->A, data->x, data->b);
 	cudssExecute(data->handler, CUDSS_PHASE_SOLVE, data->solverConfig, data->solverData, data->A, data->x, data->b);
 
@@ -84,68 +87,44 @@ __global__ void gpu_compute_func_values_csr(
 }
 
 
-__global__ void gpu_compute_jacobian_csr(double* csr_values_d, int* csr_columns_d, int* csr_rows_ptr_d, double* points_d,
-	double* csr_values_jacobian_d, int power, int matrix_size, int count_of_nnz) {
+__global__ void gpu_compute_jacobian_csr(double* csr_values_d, int* csr_columns_d, int* csr_rows_ptr_d, double* points_d, double* csr_values_jacobian_d, int power, int matrix_size, int count_of_nnz) {
 	int gid = blockIdx.x * blockDim.x + threadIdx.x;
+	if (gid >= count_of_nnz) return;
 
 	int start_i = 0;
-	int start_index = 0;
-	int end_index = 0;
-
-	if (gid < count_of_nnz) {
-
-
-		for (int i = 0; i < matrix_size; i++) {
-			if (csr_rows_ptr_d[i] >= gid) {
-				if (csr_rows_ptr_d[i] == gid) {
-					start_i = i;
-					start_index = csr_rows_ptr_d[i];
-					break;
-				}
-				else {
-					start_i = i - 1;
-					start_index = csr_rows_ptr_d[i - 1];
-					break;
-				}
-			}
-			else {
-				start_i = i;
-				start_index = csr_rows_ptr_d[i];
-			}
+	int left = 0;
+	int right = matrix_size;
+	while (left < right) {
+		int mid = left + (right - left) / 2;
+		if (csr_rows_ptr_d[mid] <= gid) {
+			start_i = mid;
+			left = mid + 1;
 		}
-		end_index = csr_rows_ptr_d[start_i + 1];
-
-
-		double f_minus = 0.0;
-		double f_plus = 0.0;
-		double result = 0.0;
-
-		for (int i = start_index; i < end_index; i++) {
-			double element = csr_values_d[i];
-			double value = points_d[csr_columns_d[i]];
-
-			if (csr_columns_d[gid] == csr_columns_d[i]) {
-				double x_value_plus = 1;
-				double x_value_minus = 1;
-				for (int i = 0; i < power; i++) {
-					x_value_plus *= (value + EQURENCY);
-					x_value_minus *= (value - EQURENCY);
-				}
-				f_minus += x_value_minus * element;
-				f_plus += x_value_plus * element;
-			}
-			else {
-				f_minus += value * element;
-				f_plus += value * element;
-			}
+		else {
+			right = mid;
 		}
-
-		__syncthreads();
-
-		result = (f_plus - f_minus) / (2 * EQURENCY);
-
-		csr_values_jacobian_d[gid] = result;
 	}
+
+	int start_index = csr_rows_ptr_d[start_i];
+	int end_index = csr_rows_ptr_d[start_i + 1];
+
+	double f_plus = 0.0;
+	double f_minus = 0.0;
+
+	double element = csr_values_d[gid];
+	double value = points_d[csr_columns_d[gid]];
+
+	double x_value_plus = 1.0;
+	double x_value_minus = 1.0;
+	for (int i = 0; i < power; i++) {
+		x_value_plus *= (value + EQURENCY);
+		x_value_minus *= (value - EQURENCY);
+	}
+	f_plus = x_value_plus * element;
+	f_minus = x_value_minus * element;
+
+	double result = (f_plus - f_minus) / (2 * EQURENCY);
+	csr_values_jacobian_d[gid] = result;
 }
 
 void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
@@ -245,6 +224,9 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 		tools::print_intermediate_result(data, iterations_count, dx, true);
 		cudaMemcpy(data->points_d, data->points_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 		file_op->append_file_data(data->intermediate_results, data->MATRIX_SIZE);
+		//if (iterations_count == 4) {
+		//	break;
+		//}
 	} while (dx > TOLERANCE);
 
 	auto end_total = std::chrono::high_resolution_clock::now();

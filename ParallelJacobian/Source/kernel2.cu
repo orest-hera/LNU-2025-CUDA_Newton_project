@@ -15,10 +15,10 @@
 
 int main(int argc, char* argv[]) {
 
-    int matrix_size = 40000;
+    int matrix_size = 1000;
 
-    int zeros_per_row_max = 29995;
-    int zeros_per_row_min = 29995;
+    int zeros_per_row_max = 995;
+    int zeros_per_row_min = 995;
     int stride = 100;
     int power = 1;
     for (int i = 0; i < argc; i++) {
@@ -58,9 +58,9 @@ int main(int argc, char* argv[]) {
             newton_solver->cpu_newton_solve();
             row[0] = data->total_elapsed_time;
         }
-        //
-        // GPU
-        //
+        ////
+        //// GPU
+        ////
         {
             std::unique_ptr<DataInitializerCUDA> data2 = std::make_unique<DataInitializerCUDA>(matrix_size, size, size, 3);
             std::unique_ptr<NewtonSolverCUDA> newton_solver2 = std::make_unique<NewtonSolverCUDA>(data2.get());

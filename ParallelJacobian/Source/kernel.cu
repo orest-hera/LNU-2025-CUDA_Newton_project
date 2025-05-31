@@ -15,8 +15,8 @@
 
 int main(int argc, char* argv[]) {
 
-   int matrix_size_max = 10;
-	int matrix_size_min = 10;
+   int matrix_size_max = 1000;
+	int matrix_size_min = 1000;
 	int stride = 100;
    int power = 1;
    for (int i = 0; i < argc; i++) {

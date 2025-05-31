@@ -159,55 +159,27 @@ __global__ void NewtonSolverGPUFunctions::gpu_compute_delta_values(double* point
 }
 
 __global__ void NewtonSolverGPUFunctions::gpu_compute_jacobian(double* points_d, double* indexes_d, double* jacobian_d, int MATRIX_SIZE, int power) {
-    extern __shared__ double shared_data[];
-
     int row = blockIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
-    double result = 0.0;
     double f_minus = 0.0;
     double f_plus = 0.0;
 
-    for (int ph = 0; ph < gridDim.x; ++ph) {
-        int global_col = ph * blockDim.x + threadIdx.x;
+    if (col < MATRIX_SIZE) {
+        double value = points_d[col];
+        double element = indexes_d[row * MATRIX_SIZE + col];
 
-        if (global_col < MATRIX_SIZE) {
-            shared_data[threadIdx.x] = points_d[global_col];
-            shared_data[blockDim.x + threadIdx.x] = indexes_d[row * MATRIX_SIZE + global_col];
+        double x_value_plus = 1.0;
+        double x_value_minus = 1.0;
+        for (int i = 0; i < power; i++) {
+            x_value_plus *= (value + EQURENCY);
+            x_value_minus *= (value - EQURENCY);
         }
-        else {
-            shared_data[threadIdx.x] = 0.0;
-            shared_data[blockDim.x + threadIdx.x] = 0.0;
-        }
-
-        __syncthreads();
-
-        for (int i = 0; i < blockDim.x; ++i) {
-            if (ph * blockDim.x + i >= MATRIX_SIZE) break;
-
-            double value = shared_data[i];
-            double element = shared_data[blockDim.x + i];
-
-            if (ph * blockDim.x + i == col) {
-                double x_value_plus = 1;
-                double x_value_minus = 1;
-                for (int i = 0; i < power; i++) {
-                    x_value_plus *= (value + EQURENCY);
-                    x_value_minus *= (value - EQURENCY);
-                }
-                f_minus += x_value_minus * element;
-                f_plus += x_value_plus * element;
-            }
-            else {
-                f_minus += value * element;
-                f_plus += value * element;
-            }
-        }
-
-        __syncthreads();
+        f_plus += x_value_plus * element;
+        f_minus += x_value_minus * element;
     }
 
-    result = (f_plus - f_minus) / (2 * EQURENCY);
+    double result = (f_plus - f_minus) / (2 * EQURENCY);
 
     if (row < MATRIX_SIZE && col < MATRIX_SIZE) {
         jacobian_d[row * MATRIX_SIZE + col] = result;

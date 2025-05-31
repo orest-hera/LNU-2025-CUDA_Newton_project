@@ -5,6 +5,7 @@
 class DataInitializerCuDSS : public DataInitializer
 {
 public:
+	bool analyzed = false;
 	double* csr_values_h{ nullptr };
 	int* csr_rows_h{ nullptr },
 		* csr_cols_h{ nullptr };

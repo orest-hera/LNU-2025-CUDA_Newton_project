@@ -27,39 +27,14 @@ void NewtonSolverCPU::cpu_computeVec() {
 }
 
 double NewtonSolverCPU::cpu_compute_derivative(int rowIndex, int colIndex) {
-    double equrency = EQURENCY;
-    double original = data->points_h[colIndex];
+    double value = data->points_h[colIndex];
+    double element = data->indexes_h[rowIndex * data->MATRIX_SIZE + colIndex];
 
-    data->points_h[colIndex] = original + equrency;
-    double f_plus = 0.0;
-    for (int j = 0; j < data->MATRIX_SIZE; ++j) {
-        if (j == colIndex) {
-            f_plus += data->equation->calculate_term_value(data->indexes_h[rowIndex * data->MATRIX_SIZE + j], data->points_h[j]);
-        }
-        else {
-			f_plus += data->equation->calculate_term_value(data->indexes_h[rowIndex * data->MATRIX_SIZE + j], data->points_h[j]);
-        }
-    }
+    double f_plus =  data->equation->calculate_term_value(element, value + EQURENCY);
+    double f_minus = data->equation->calculate_term_value(element, value - EQURENCY);;
 
-    data->points_h[colIndex] = original - 2 * equrency;
-    double f_minus = 0.0;
-    for (int j = 0; j < data->MATRIX_SIZE; ++j) {
-        if (j == colIndex) {
-            f_minus += data->equation->calculate_term_value(data->indexes_h[rowIndex * data->MATRIX_SIZE + j], data->points_h[j]);
-        }
-        else {
-            f_minus += data->equation->calculate_term_value(data->indexes_h[rowIndex * data->MATRIX_SIZE + j], data->points_h[j]);
-        }
-    }
-
-    data->points_h[colIndex] = original;
-
-    return (f_plus - f_minus) / (2.0 * equrency);
+    return (f_plus - f_minus) / (2.0 * EQURENCY);
 }
-
-//
-//   CPU
-//
 
 void NewtonSolverCPU::cpu_compute_jacobian() {
     for (int i = 0; i < data->MATRIX_SIZE; ++i) {

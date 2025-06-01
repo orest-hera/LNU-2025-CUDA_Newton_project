@@ -9,7 +9,7 @@ mem_14nz = np.array([89, 106, 171, 220, 429, 835, 2168])
 p7 = Polynomial.fit(N_measured, mem_7nz, deg=2)
 p14 = Polynomial.fit(N_measured, mem_14nz, deg=2)
 
-N_predict = np.linspace(1, 100, 500)
+N_predict = np.linspace(1, 70, 500)
 mem7_predict = p7(N_predict)
 mem14_predict = p14(N_predict)
 

@@ -43,6 +43,7 @@ def load_all_runs(base_dir="../"):
                         try:
                             zeros = int(file.split('_')[-1].split('.')[0])
                             phase_df['zeros_per_row'] = zeros
+                            phase_df['nonzeros_per_row'] = 10000 - zeros  # Додаємо кількість ненульових елементів
                         except:
                             continue
                     
@@ -72,8 +73,8 @@ def analyze_cudss_performance(df):
     stats['sparsity_percent'] = stats['zeros_per_row'] / 10000 * 100
     stats['density_percent'] = 100 - stats['sparsity_percent']
     
-    # Сортуємо за зростанням zeros_per_row
-    stats = stats.sort_values('zeros_per_row').reset_index(drop=True)
+    # Сортуємо за зростанням ненульових елементів (зменшенням нулів)
+    stats = stats.sort_values('nonzeros_per_row').reset_index(drop=True)
     
     return stats
 
@@ -81,27 +82,30 @@ def plot_performance(stats):
     """Створює графіки продуктивності"""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 6))
     
-    # Графік 1: Час від кількості нулів з помилками
-    ax1.errorbar(stats['zeros_per_row'], stats['cuDSS_mean'], 
+    # Графік 1: Час від кількості ненульових елементів з помилками
+    ax1.errorbar(stats['nonzeros_per_row'], stats['cuDSS_mean'], 
                 yerr=stats['cuDSS_std'], fmt='o-', color='orange',
                 capsize=5, linewidth=2, label='Середній час ± STD')
-    ax1.plot(stats['zeros_per_row'], stats['cuDSS_min'], 'g--', label='Мінімальний час')
-    ax1.plot(stats['zeros_per_row'], stats['cuDSS_max'], 'r--', label='Максимальний час')
+    ax1.plot(stats['nonzeros_per_row'], stats['cuDSS_min'], 'g--', label='Мінімальний час')
+    ax1.plot(stats['nonzeros_per_row'], stats['cuDSS_max'], 'r--', label='Максимальний час')
     
-    ax1.set_title('Продуктивність cuDSS для різної розрідженості\n')
-    ax1.set_xlabel('Кількість нулів у рядку')
+    ax1.set_title('Продуктивність cuDSS залежно від кількості ненульових елементів\n')
+    ax1.set_xlabel('Кількість ненульових елементів у рядку')
     ax1.set_ylabel('Час виконання (секунди)')
     ax1.legend()
     ax1.grid(True)
     
-    # Графік 2: Відносна продуктивність
+    # Графік 2: Відносна продуктивність (сортуємо за зростанням ненульових елементів)
     min_time = stats['cuDSS_mean'].min()
     stats['speedup'] = stats['cuDSS_mean'] / min_time
     
-    ax2.bar(stats['sparsity_percent'].astype(str) + '%', stats['speedup'], 
+    # Створюємо мітки для осі X у відсотках щільності
+    x_labels = [f"{int(density)}%" for density in stats['density_percent']]
+    
+    ax2.bar(x_labels, stats['speedup'], 
            color='skyblue', edgecolor='navy')
     ax2.set_title('Відносна продуктивність cuDSS\n(1.0 = найшвидший варіант)')
-    ax2.set_xlabel('Розрідженість матриці')
+    ax2.set_xlabel('Щільність матриці')
     ax2.set_ylabel('Коефіцієнт уповільнення')
     ax2.grid(True, axis='y')
     
@@ -116,12 +120,18 @@ def analyze_phases(phase_df):
     
     phases = ['func_value_t', 'jacobian_value_t', 'delta_value_t', 'update_points_t']
     
-    # Групуємо дані
-    phase_stats = phase_df.groupby(['zeros_per_row', 'run'])[phases].mean().reset_index()
+    # Додаємо кількість ненульових елементів
+    phase_df['nonzeros_per_row'] = 10000 - phase_df['zeros_per_row']
     
-    # Обчислюємо статистики для кожного ступеня розрідженості
-    result = phase_df.groupby('zeros_per_row')[phases].agg(['mean', 'std']).reset_index()
-    result.columns = ['zeros_per_row'] + [f'{col[0]}_{col[1]}' for col in result.columns[1:]]
+    # Групуємо дані
+    phase_stats = phase_df.groupby(['nonzeros_per_row', 'run'])[phases].mean().reset_index()
+    
+    # Обчислюємо статистики для кожного ступеня щільності
+    result = phase_df.groupby('nonzeros_per_row')[phases].agg(['mean', 'std']).reset_index()
+    result.columns = ['nonzeros_per_row'] + [f'{col[0]}_{col[1]}' for col in result.columns[1:]]
+    
+    # Сортуємо за зростанням ненульових елементів
+    result = result.sort_values('nonzeros_per_row').reset_index(drop=True)
     
     # Побудова графіків
     plt.figure(figsize=(12, 6))
@@ -130,13 +140,13 @@ def analyze_phases(phase_df):
         mean_col = f'{phase}_mean'
         std_col = f'{phase}_std'
         
-        plt.errorbar(result['zeros_per_row'], result[mean_col], 
+        plt.errorbar(result['nonzeros_per_row'], result[mean_col], 
                     yerr=result[std_col], fmt='o-',
                     label=phase.replace('_t', '').replace('_', ' '),
                     capsize=5)
     
-    plt.title('Час окремих етапів cuDSS\n')
-    plt.xlabel('Кількість нулів у рядку')
+    plt.title('Час окремих етапів cuDSS залежно від кількості ненульових елементів\n')
+    plt.xlabel('Кількість ненульових елементів у рядку')
     plt.ylabel('Час виконання (секунди)')
     plt.legend()
     plt.grid(True)

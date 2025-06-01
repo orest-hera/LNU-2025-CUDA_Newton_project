@@ -20,7 +20,7 @@ def load_and_process_data():
     
     # Зберігати детальні дані для кожного методу
     cpu_details = defaultdict(list)
-    gpu_details = defaultdict(list)
+    gpu_cublas_details = defaultdict(list) # Змінено назву для cuBLAS
     cudss_details = defaultdict(list)
     
     for run, dir_name in enumerate(result_dirs, 1):
@@ -44,12 +44,12 @@ def load_and_process_data():
                 cpu_df['run'] = run
                 cpu_details[size].append(cpu_df)
             
-            # GPU дані
+            # GPU (cuBLAS) дані
             gpu_file = os.path.join(dir_path, f"gpu_newton_solver_{size}.csv")
             if os.path.exists(gpu_file):
                 gpu_df = pd.read_csv(gpu_file)
                 gpu_df['run'] = run
-                gpu_details[size].append(gpu_df)
+                gpu_cublas_details[size].append(gpu_df)
             
             # cuDSS дані
             cudss_file = os.path.join(dir_path, f"gpu_cudss_newton_solver_{size}.csv")
@@ -74,10 +74,10 @@ def load_and_process_data():
         return processed
     
     cpu_processed = process_details(cpu_details)
-    gpu_processed = process_details(gpu_details)
+    gpu_cublas_processed = process_details(gpu_cublas_details) # Змінено назву для cuBLAS
     cudss_processed = process_details(cudss_details)
     
-    return total_df, cpu_processed, gpu_processed, cudss_processed
+    return total_df, cpu_processed, gpu_cublas_processed, cudss_processed
 
 def plot_total_stats(total_df):
     if total_df.empty:
@@ -89,16 +89,25 @@ def plot_total_stats(total_df):
     
     # Побудувати графік для загального часу
     plt.figure(figsize=(12, 6))
-    for method in ['CPU', 'GPU', 'cuDSS']:
-        plt.errorbar(
-            stats['matrix_size'], 
-            stats[(method, 'mean')], 
-            yerr=stats[(method, 'std')],
-            label=method,
-            capsize=5,
-            marker='o',
-            linestyle='-'
-        )
+    
+    # Змінені мітки для легенди
+    method_labels = {
+        'CPU': 'CPU', 
+        'GPU': 'GPU (cuBLAS)', 
+        'cuDSS': 'GPU (cuDSS)'
+    }
+    
+    for method_col, label_text in method_labels.items():
+        if (method_col, 'mean') in stats.columns: # Перевірка наявності стовпця
+            plt.errorbar(
+                stats['matrix_size'], 
+                stats[(method_col, 'mean')], 
+                yerr=stats[(method_col, 'std')],
+                label=label_text,
+                capsize=5,
+                marker='o',
+                linestyle='-'
+            )
     
     plt.title("Середній час виконання для різних методів з відхиленнями")
     plt.xlabel("Розмір матриці")
@@ -108,18 +117,18 @@ def plot_total_stats(total_df):
     plt.savefig("total_performance_comparison.png")
     plt.close()
 
-def plot_phase_times(cpu_data, gpu_data, cudss_data):
+def plot_phase_times(cpu_data, gpu_cublas_data, cudss_data): # Змінено назву для cuBLAS
     # Створити графіки для кожного етапу обчислень
     phases = {
         'cpu': ['func_value_t', 'jacobian_value_t', 'inverse_jacobian_t', 'delta_value_t', 'update_points_t'],
-        'gpu': ['func_value_t', 'jacobian_value_t', 'delta_value_t', 'update_points_t'],
+        'gpu_cublas': ['func_value_t', 'jacobian_value_t', 'delta_value_t', 'update_points_t'], # Змінено ключ
         'cudss': ['func_value_t', 'jacobian_value_t', 'delta_value_t', 'update_points_t']
     }
     
     for method, data, method_name in zip(
-        ['cpu', 'gpu', 'cudss'],
-        [cpu_data, gpu_data, cudss_data],
-        ['CPU', 'GPU', 'cuDSS']
+        ['cpu', 'gpu_cublas', 'cudss'], # Змінено ключ
+        [cpu_data, gpu_cublas_data, cudss_data], # Змінено назву для cuBLAS
+        ['CPU', 'GPU (cuBLAS)', 'GPU (cuDSS)'] # Змінені мітки для назви файлу та заголовку
     ):
         if not data:
             continue
@@ -152,7 +161,7 @@ def plot_phase_times(cpu_data, gpu_data, cudss_data):
         plt.ylabel("Час виконання (секунди)")
         plt.legend()
         plt.grid(True)
-        plt.savefig(f"{method_name.lower()}_phase_times.png")
+        plt.savefig(f"{method_name.replace(' ', '_').replace('(', '').replace(')', '').lower()}_phase_times.png") # Забезпечення коректного імені файлу
         plt.close()
 
 def plot_speedup(total_df):
@@ -161,33 +170,48 @@ def plot_speedup(total_df):
     
     stats = total_df.groupby('matrix_size').agg(['mean', 'std']).reset_index()
     
-    # Обчислити прискорення GPU та cuDSS відносно CPU
-    stats[('GPU_speedup', 'mean')] = stats[('CPU', 'mean')] / stats[('GPU', 'mean')]
-    stats[('GPU_speedup', 'std')] = stats[('GPU_speedup', 'mean')] * np.sqrt(
-        (stats[('CPU', 'std')]/stats[('CPU', 'mean')])**2 + 
-        (stats[('GPU', 'std')]/stats[('GPU', 'mean')])**2
-    )
-    
-    stats[('cuDSS_speedup', 'mean')] = stats[('CPU', 'mean')] / stats[('cuDSS', 'mean')]
-    stats[('cuDSS_speedup', 'std')] = stats[('cuDSS_speedup', 'mean')] * np.sqrt(
-        (stats[('CPU', 'std')]/stats[('CPU', 'mean')])**2 + 
-        (stats[('cuDSS', 'std')]/stats[('cuDSS', 'mean')])**2
-    )
-    
+    # Обчислити прискорення GPU (cuBLAS) та cuDSS відносно CPU
+    if ('CPU', 'mean') in stats.columns and ('GPU', 'mean') in stats.columns:
+        stats[('GPU_speedup', 'mean')] = stats[('CPU', 'mean')] / stats[('GPU', 'mean')]
+        stats[('GPU_speedup', 'std')] = stats[('GPU_speedup', 'mean')] * np.sqrt(
+            (stats[('CPU', 'std')]/stats[('CPU', 'mean')])**2 + 
+            (stats[('GPU', 'std')]/stats[('GPU', 'mean')])**2
+        )
+    else:
+        stats[('GPU_speedup', 'mean')] = np.nan
+        stats[('GPU_speedup', 'std')] = np.nan
+
+    if ('CPU', 'mean') in stats.columns and ('cuDSS', 'mean') in stats.columns:
+        stats[('cuDSS_speedup', 'mean')] = stats[('CPU', 'mean')] / stats[('cuDSS', 'mean')]
+        stats[('cuDSS_speedup', 'std')] = stats[('cuDSS_speedup', 'mean')] * np.sqrt(
+            (stats[('CPU', 'std')]/stats[('CPU', 'mean')])**2 + 
+            (stats[('cuDSS', 'std')]/stats[('cuDSS', 'mean')])**2
+        )
+    else:
+        stats[('cuDSS_speedup', 'mean')] = np.nan
+        stats[('cuDSS_speedup', 'std')] = np.nan
+
     # Побудувати графік прискорення
     plt.figure(figsize=(12, 6))
-    for method in ['GPU', 'cuDSS']:
-        plt.errorbar(
-            stats['matrix_size'],
-            stats[(f'{method}_speedup', 'mean')],
-            yerr=stats[(f'{method}_speedup', 'std')],
-            label=f'{method} vs CPU',
-            capsize=5,
-            marker='o',
-            linestyle='-'
-        )
     
-    plt.title("Прискорення GPU та cuDSS відносно CPU")
+    speedup_methods = {
+        'GPU': 'GPU (cuBLAS) vs CPU', 
+        'cuDSS': 'GPU (cuDSS) vs CPU'
+    }
+
+    for method_prefix, label_text in speedup_methods.items():
+        if (f'{method_prefix}_speedup', 'mean') in stats.columns and not stats[(f'{method_prefix}_speedup', 'mean')].isnull().all():
+            plt.errorbar(
+                stats['matrix_size'],
+                stats[(f'{method_prefix}_speedup', 'mean')],
+                yerr=stats[(f'{method_prefix}_speedup', 'std')],
+                label=label_text,
+                capsize=5,
+                marker='o',
+                linestyle='-'
+            )
+    
+    plt.title("Прискорення GPU (cuBLAS) та GPU (cuDSS) відносно CPU")
     plt.xlabel("Розмір матриці")
     plt.ylabel("Коефіцієнт прискорення")
     plt.legend()
@@ -197,7 +221,7 @@ def plot_speedup(total_df):
 
 def main():
     print("Обробка даних...")
-    total_df, cpu_data, gpu_data, cudss_data = load_and_process_data()
+    total_df, cpu_data, gpu_cublas_data, cudss_data = load_and_process_data() # Змінено назву для cuBLAS
     
     if not total_df.empty:
         print("Створення графіків...")
@@ -206,8 +230,8 @@ def main():
     else:
         print("Не знайдено даних total_statistic.csv")
     
-    if cpu_data or gpu_data or cudss_data:
-        plot_phase_times(cpu_data, gpu_data, cudss_data)
+    if cpu_data or gpu_cublas_data or cudss_data: # Змінено назву для cuBLAS
+        plot_phase_times(cpu_data, gpu_cublas_data, cudss_data) # Змінено назву для cuBLAS
     else:
         print("Не знайдено детальних даних про час виконання етапів")
     

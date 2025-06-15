@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.24)
 project(ParallelJacobian LANGUAGES CXX CUDA)
 
 if(WIN32)
@@ -62,11 +62,21 @@ target_link_libraries(ParallelJacobian_DimensionStudy PRIVATE my_common_lib cuds
 add_executable(ParallelJacobian_SparsityStudy "${CMAKE_SOURCE_DIR}/Source/kernel2.cu")
 target_link_libraries(ParallelJacobian_SparsityStudy PRIVATE my_common_lib cudss cublas)
 
-set(CMAKE_BUILD_TYPE Release)
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+    message(STATUS "Setting default build type: ${CMAKE_BUILD_TYPE}")
+endif()
+
+# CUDA_ARCHITECTURES: list of architectures, for example "61;75" or
+# one of the following special values: native, all, all-major
+if(NOT CUDA_ARCHITECTURES)
+    set(CUDA_ARCHITECTURES native)
+    message(STATUS "Setting default CUDA Architectures: ${CUDA_ARCHITECTURES}")
+endif()
 
 set_target_properties(ParallelJacobian_DimensionStudy ParallelJacobian_SparsityStudy my_common_lib PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON # Generally good practice for large CUDA projects
-    CUDA_ARCHITECTURES "native" # Builds for the detected GPU architecture
+    CUDA_ARCHITECTURES "${CUDA_ARCHITECTURES}"
 )
 
 if(WIN32)

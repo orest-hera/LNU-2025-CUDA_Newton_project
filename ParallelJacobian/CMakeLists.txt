@@ -22,6 +22,8 @@ endif()
 if(UNIX)
     set(CUDA_PATH "/usr/local/cuda")
     set(CUDSS_PATH "/usr/local/cudss")
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 endif()
 
 include_directories(

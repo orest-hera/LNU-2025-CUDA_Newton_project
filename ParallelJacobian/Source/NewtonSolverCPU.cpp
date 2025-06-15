@@ -164,7 +164,7 @@ void NewtonSolverCPU::cpu_newton_solve() {
 		start = std::chrono::steady_clock::now();
 #endif
         dx = 0;
-        for (size_t i = 0; i < data->MATRIX_SIZE; ++i) {
+        for (int i = 0; i < data->MATRIX_SIZE; ++i) {
             data->points_h[i] += data->delta_h[i];
             dx = std::max(dx, std::abs(data->delta_h[i]));
         }

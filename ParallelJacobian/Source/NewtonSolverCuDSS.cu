@@ -94,23 +94,6 @@ __global__ void gpu_compute_jacobian_csr(double* csr_values_d, int* csr_columns_
 	int gid = blockIdx.x * blockDim.x + threadIdx.x;
 	if (gid >= count_of_nnz) return;
 
-	int start_i = 0;
-	int left = 0;
-	int right = matrix_size;
-	while (left < right) {
-		int mid = left + (right - left) / 2;
-		if (csr_rows_ptr_d[mid] <= gid) {
-			start_i = mid;
-			left = mid + 1;
-		}
-		else {
-			right = mid;
-		}
-	}
-
-	int start_index = csr_rows_ptr_d[start_i];
-	int end_index = csr_rows_ptr_d[start_i + 1];
-
 	double f_plus = 0.0;
 	double f_minus = 0.0;
 
@@ -131,9 +114,6 @@ __global__ void gpu_compute_jacobian_csr(double* csr_values_d, int* csr_columns_
 }
 
 void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
-	cudaDeviceProp prop;
-	cudaGetDeviceProperties(&prop, 0);
-	int version = prop.major;
 	std::unique_ptr<FileOperations> file_op = std::make_unique<FileOperations>();
 	std::string file_name = "gpu_cudss_newton_solver_" + std::to_string(data->file_name) + ".csv";
 	file_op->create_file(file_name, 4);
@@ -143,12 +123,8 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 	cudaDeviceSynchronize();
 	std::cout << "GPU CuDss Newton solver\n";
 	std::cout << "Power: " << data->equation->get_power() << "\n";
-	int x_blocks_count = (data->MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
 	int iterations_count = 0;
 	double dx = 0;
-
-	dim3 blockDim(BLOCK_SIZE, 1, 1);
-	dim3 gridDim(x_blocks_count, data->MATRIX_SIZE, 1);
 
 	auto start_total = std::chrono::steady_clock::now();
 

@@ -4,7 +4,7 @@
 __global__ void NewtonSolverGPUFunctions::gpu_dummy_warmup() {
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
     if (idx < 32) {
-        double tmp = idx * 0.1;
+        volatile double tmp = idx * 0.1;
     }
 }
 

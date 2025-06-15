@@ -150,7 +150,7 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 	dim3 blockDim(BLOCK_SIZE, 1, 1);
 	dim3 gridDim(x_blocks_count, data->MATRIX_SIZE, 1);
 
-	auto start_total = std::chrono::high_resolution_clock::now();
+	auto start_total = std::chrono::steady_clock::now();
 
 	cudaMemcpy(data->points_d, data->points_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 
@@ -166,7 +166,7 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 		iterations_count++;
 
 #ifdef INTERMEDIATE_RESULTS
-		auto start = std::chrono::high_resolution_clock::now();
+		auto start = std::chrono::steady_clock::now();
 #endif
 
 		int threads_per_blocks = 256;
@@ -191,9 +191,9 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 		cudaMemcpy(data->funcs_value_d, data->funcs_value_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 		cudaDeviceSynchronize();
 #ifdef INTERMEDIATE_RESULTS
-		auto end = std::chrono::high_resolution_clock::now();
+		auto end = std::chrono::steady_clock::now();
 		data->intermediate_results[0] = std::chrono::duration<double>(end - start).count();
-		start = std::chrono::high_resolution_clock::now();
+		start = std::chrono::steady_clock::now();
 #endif
 		int threads_per_block = 256;
 		int blocks = (data->non_zero_count + threads_per_block - 1) / threads_per_block;
@@ -202,17 +202,17 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 		cudaDeviceSynchronize();
 
 #ifdef INTERMEDIATE_RESULTS
-		end = std::chrono::high_resolution_clock::now();
+		end = std::chrono::steady_clock::now();
 		data->intermediate_results[1] = std::chrono::duration<double>(end - start).count();
-		start = std::chrono::high_resolution_clock::now();
+		start = std::chrono::steady_clock::now();
 #endif
 
 		solve(data->jacobian_d, data->funcs_value_d, data->delta_h, data->delta_d);
 		cudaDeviceSynchronize();
 #ifdef INTERMEDIATE_RESULTS
-		end = std::chrono::high_resolution_clock::now();
+		end = std::chrono::steady_clock::now();
 		data->intermediate_results[2] = std::chrono::duration<double>(end - start).count();
-		start = std::chrono::high_resolution_clock::now();
+		start = std::chrono::steady_clock::now();
 #endif
 		dx = 0.0;
 		for (size_t i = 0; i < data->MATRIX_SIZE; ++i) {
@@ -221,7 +221,7 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 		}
 
 #ifdef INTERMEDIATE_RESULTS
-		end = std::chrono::high_resolution_clock::now();
+		end = std::chrono::steady_clock::now();
 		data->intermediate_results[3] = std::chrono::duration<double>(end - start).count();
 #endif
 		tools::print_intermediate_result(data, iterations_count, dx, true);
@@ -232,7 +232,7 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 		//}
 	} while (dx > TOLERANCE);
 
-	auto end_total = std::chrono::high_resolution_clock::now();
+	auto end_total = std::chrono::steady_clock::now();
 	data->total_elapsed_time = std::chrono::duration<double>(end_total - start_total).count();
 	tools::print_solution(data, iterations_count);
 }

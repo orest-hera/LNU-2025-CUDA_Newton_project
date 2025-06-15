@@ -55,6 +55,7 @@ DataInitializer::~DataInitializer() {
     delete[] vector_b_h;
 	delete[] points_check;
 #endif
+    delete equation;
 }
 
 void DataInitializer::initialize_indexes_matrix_and_b() {

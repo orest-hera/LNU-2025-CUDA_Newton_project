@@ -1,4 +1,7 @@
 #include "NewtonSolverCuDSS.h"
+
+#include <memory>
+
 #include "NewtonSolverGPUFunctions.h"
 #include "FileOperations.h"
 #include "iostream"
@@ -131,7 +134,7 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 	cudaDeviceProp prop;
 	cudaGetDeviceProperties(&prop, 0);
 	int version = prop.major;
-	FileOperations* file_op = new FileOperations();
+	std::unique_ptr<FileOperations> file_op = std::make_unique<FileOperations>();
 	std::string file_name = "gpu_cudss_newton_solver_" + std::to_string(data->file_name) + ".csv";
 	file_op->create_file(file_name, 4);
 	file_op->append_file_headers("func_value_t,jacobian_value_t,delta_value_t,update_points_t,matrix_size");

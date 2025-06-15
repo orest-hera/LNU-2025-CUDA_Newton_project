@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     }
 
     int iteration = 0;
-    FileOperations* file_op = new FileOperations();
+    std::unique_ptr<FileOperations> file_op = std::make_unique<FileOperations>();
     std::string header = "CPU,GPU,cuDSS,zeros_per_row";
     file_op->create_file("total_statistic.csv", 3);
     file_op->append_file_headers(header);

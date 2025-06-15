@@ -1,5 +1,6 @@
 ﻿#include "stdio.h"
 #include <iostream>
+#include <memory>
 #include <string>
 #include "cuda_runtime.h"
 #include "FileOperations.h"
@@ -23,9 +24,9 @@ void NewtonSolverCUDA::gpu_newton_solve() {
     cudaDeviceProp prop;
     cudaGetDeviceProperties(&prop, 0);
     int version = prop.major;
-    FileOperations* file_op = new FileOperations();
-	std::string file_name = "gpu_newton_solver_" + std::to_string(data->file_name) + ".csv";
-	file_op->create_file(file_name, 5);
+    std::unique_ptr<FileOperations> file_op = std::make_unique<FileOperations>();
+    std::string file_name = "gpu_newton_solver_" + std::to_string(data->file_name) + ".csv";
+    file_op->create_file(file_name, 5);
     file_op->append_file_headers("func_value_t,jacobian_value_t,inverse_jacobian_t,delta_value_t,update_points_t,matrix_size");
 
     NewtonSolverGPUFunctions::gpu_dummy_warmup << <1, 32 >> > ();

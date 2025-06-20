@@ -1,5 +1,6 @@
 ﻿#include "stdio.h"
 #include <iostream>
+#include <memory>
 #include <string>
 #include "cuda_runtime.h"
 #include "FileOperations.h"
@@ -23,9 +24,9 @@ void NewtonSolverCUDA::gpu_newton_solve() {
     cudaDeviceProp prop;
     cudaGetDeviceProperties(&prop, 0);
     int version = prop.major;
-    FileOperations* file_op = new FileOperations();
-	std::string file_name = "gpu_newton_solver_" + std::to_string(data->file_name) + ".csv";
-	file_op->create_file(file_name, 5);
+    std::unique_ptr<FileOperations> file_op = std::make_unique<FileOperations>();
+    std::string file_name = "gpu_newton_solver_" + std::to_string(data->file_name) + ".csv";
+    file_op->create_file(file_name, 5);
     file_op->append_file_headers("func_value_t,jacobian_value_t,inverse_jacobian_t,delta_value_t,update_points_t,matrix_size");
 
     NewtonSolverGPUFunctions::gpu_dummy_warmup << <1, 32 >> > ();
@@ -40,7 +41,7 @@ void NewtonSolverCUDA::gpu_newton_solve() {
 
     double* delta = new double[data->MATRIX_SIZE];
 
-    auto start_total = std::chrono::high_resolution_clock::now();
+	auto start_total = std::chrono::steady_clock::now();
 
     cudaMemcpy(data->points_d, data->points_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
     cudaMemcpy(data->indexes_d, data->indexes_h, data->MATRIX_SIZE * data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
@@ -52,7 +53,7 @@ void NewtonSolverCUDA::gpu_newton_solve() {
         iterations_count++;
 
 #ifdef INTERMEDIATE_RESULTS
-        auto start = std::chrono::high_resolution_clock::now();
+		auto start = std::chrono::steady_clock::now();
 #endif
 		std::cout << "Power: " << data->equation->get_power() << "\n";
         NewtonSolverGPUFunctions::gpu_compute_func_values << <gridDim, blockDim, blockDim.x * sizeof(double) >> > (
@@ -70,9 +71,9 @@ void NewtonSolverCUDA::gpu_newton_solve() {
         cudaMemcpy(data->funcs_value_d, data->funcs_value_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 
 #ifdef INTERMEDIATE_RESULTS
-        auto end = std::chrono::high_resolution_clock::now();
+		auto end = std::chrono::steady_clock::now();
         data->intermediate_results[0] = std::chrono::duration<double>(end - start).count();
-        start = std::chrono::high_resolution_clock::now();
+		start = std::chrono::steady_clock::now();
 #endif
 
         NewtonSolverGPUFunctions::gpu_compute_jacobian << <gridDim, blockDim >> > (
@@ -82,16 +83,16 @@ void NewtonSolverCUDA::gpu_newton_solve() {
         //cudaMemcpy(data->jacobian_h, data->jacobian_d, data->MATRIX_SIZE * data->MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
 
 #ifdef INTERMEDIATE_RESULTS
-        end = std::chrono::high_resolution_clock::now();
+		end = std::chrono::steady_clock::now();
         data->intermediate_results[1] = std::chrono::duration<double>(end - start).count();
-        start = std::chrono::high_resolution_clock::now();
+		start = std::chrono::steady_clock::now();
 #endif
         gpu_cublasInverse(data);
         cudaDeviceSynchronize();
 #ifdef INTERMEDIATE_RESULTS
-        end = std::chrono::high_resolution_clock::now();
+		end = std::chrono::steady_clock::now();
         data->intermediate_results[2] = std::chrono::duration<double>(end - start).count();
-        start = std::chrono::high_resolution_clock::now();
+		start = std::chrono::steady_clock::now();
 #endif
 
         NewtonSolverGPUFunctions::gpu_compute_delta_values << <gridDim, blockDim, blockDim.x * sizeof(double) >> > (
@@ -108,9 +109,9 @@ void NewtonSolverCUDA::gpu_newton_solve() {
         }
 
 #ifdef INTERMEDIATE_RESULTS
-        end = std::chrono::high_resolution_clock::now();
+		end = std::chrono::steady_clock::now();
         data->intermediate_results[3] = std::chrono::duration<double>(end - start).count();
-        start = std::chrono::high_resolution_clock::now();
+		start = std::chrono::steady_clock::now();
 #endif
 
         dx = 0.0;
@@ -122,7 +123,7 @@ void NewtonSolverCUDA::gpu_newton_solve() {
         cudaMemcpy(data->points_d, data->points_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 
 #ifdef INTERMEDIATE_RESULTS
-        end = std::chrono::high_resolution_clock::now();
+		end = std::chrono::steady_clock::now();
         data->intermediate_results[4] = std::chrono::duration<double>(end - start).count();
 
 		tools::print_intermediate_result(data, iterations_count, dx);
@@ -131,7 +132,7 @@ void NewtonSolverCUDA::gpu_newton_solve() {
     } while (dx > TOLERANCE);
 	file_op->close_file();
 
-    auto end_total = std::chrono::high_resolution_clock::now();
+	auto end_total = std::chrono::steady_clock::now();
     data->total_elapsed_time = std::chrono::duration<double>(end_total - start_total).count();
 
     tools::print_solution(data, iterations_count);

@@ -9,9 +9,10 @@ DataInitializer::DataInitializer(int MATRIX_SIZE, int zeros_elements_per_row, in
 	this->MATRIX_SIZE = MATRIX_SIZE;
 	this->file_name = file_name;
 	this->zeros_elements_per_row = zeros_elements_per_row;
-    int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
 #ifdef PINNED_MEMORY
+	int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
+
 	cudaMallocHost((double**)&points_h, MATRIX_SIZE * sizeof(double));
 	cudaMallocHost((double**)&indexes_h, MATRIX_SIZE * MATRIX_SIZE * sizeof(double));
 	cudaMallocHost((double**)&intermediate_funcs_value_h, x_blocks_count * MATRIX_SIZE * sizeof(double));
@@ -55,10 +56,12 @@ DataInitializer::~DataInitializer() {
     delete[] vector_b_h;
 	delete[] points_check;
 #endif
+    delete equation;
 }
 
 void DataInitializer::initialize_indexes_matrix_and_b() {
-    int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    //int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
+
     for (int i = 0; i < MATRIX_SIZE; i++) {
         points_h[i] = 10;
 #ifdef GPU_SOLVER

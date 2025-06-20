@@ -1,19 +1,29 @@
 #include "EditionalTools.h"
-#include "DataInitializer.h"
-#include "time.h"
-#include "stdlib.h"
+
 #include <iostream>
-#include <vector>
-#include <cstdlib>
 #include <numeric>
-#include <algorithm>
 #include <random> 
+#include <vector>
+
+#include "DataInitializer.h"
+
+template<class It, class G>
+void random_shuffle(It first, It last, G& gen)
+{
+    for (auto i = last - first - 1; i > 0; --i)
+    {
+        std::swap(first[i], first[gen() % (i + 1)]);
+    }
+}
 
 void tools::generate_initial_indexes_matrix_and_vector_b(double* matrix, double* b, double* points, int MATRIX_SIZE, Equation* equation) {
+    std::mt19937 gen;
+    auto rand_max = gen.max();
+
     for (int i = 0; i < MATRIX_SIZE; i++) {
-        points[i] = static_cast<double>(rand()) / RAND_MAX;
+        points[i] = static_cast<double>(gen()) / rand_max;
         for (int j = 0; j < MATRIX_SIZE; j++) {
-            matrix[i * MATRIX_SIZE + j] = static_cast<double>(rand()) / RAND_MAX;
+            matrix[i * MATRIX_SIZE + j] = static_cast<double>(gen()) / rand_max;
         }
     }
 
@@ -37,20 +47,23 @@ void tools::generate_sparse_initial_indexes_matrix_and_vector_b(
         zero_elements_per_row = 0;
     }
 
+    std::mt19937 gen;
+    auto rand_max = gen.max();
+
     for (int i = 0; i < MATRIX_SIZE; i++) {
-        points[i] = static_cast<double>(rand()) / RAND_MAX;
+        points[i] = static_cast<double>(gen()) / rand_max;
     }
 
     for (int i = 0; i < MATRIX_SIZE; i++) {
         for (int j = 0; j < MATRIX_SIZE; j++) {
-            matrix[i * MATRIX_SIZE + j] = static_cast<double>(rand()) / RAND_MAX;
+            matrix[i * MATRIX_SIZE + j] = static_cast<double>(gen()) / rand_max;
         }
 
 
         if (zero_elements_per_row > 0) {
             std::vector<int> positions(MATRIX_SIZE);
             std::iota(positions.begin(), positions.end(), 0);
-            std::random_shuffle(positions.begin(), positions.end());
+            random_shuffle(positions.begin(), positions.end(), gen);
 
             for (int k = 0; k < zero_elements_per_row; k++) {
                 int j = positions[k];

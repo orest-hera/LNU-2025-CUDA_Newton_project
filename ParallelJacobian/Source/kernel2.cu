@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
     int zeros_per_row_max = 995;
     int zeros_per_row_min = 995;
     int stride = 100;
-    int power = 1;
+    int power = 3;
     for (int i = 0; i < argc; i++) {
         std::string arg = argv[i];
 
@@ -40,8 +40,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    int iteration = 0;
-    FileOperations* file_op = new FileOperations();
+    std::unique_ptr<FileOperations> file_op = std::make_unique<FileOperations>();
     std::string header = "CPU,GPU,cuDSS,zeros_per_row";
     file_op->create_file("total_statistic.csv", 3);
     file_op->append_file_headers(header);
@@ -53,7 +52,7 @@ int main(int argc, char* argv[]) {
         // CPY
         //
         {
-            std::unique_ptr<DataInitializerCPU> data = std::make_unique<DataInitializerCPU>(matrix_size, size, size, 3);
+            std::unique_ptr<DataInitializerCPU> data = std::make_unique<DataInitializerCPU>(matrix_size, size, size, power);
             std::unique_ptr<NewtonSolverCPU> newton_solver = std::make_unique<NewtonSolverCPU>(data.get());
             newton_solver->cpu_newton_solve();
             row[0] = data->total_elapsed_time;
@@ -62,7 +61,7 @@ int main(int argc, char* argv[]) {
         //// GPU
         ////
         {
-            std::unique_ptr<DataInitializerCUDA> data2 = std::make_unique<DataInitializerCUDA>(matrix_size, size, size, 3);
+            std::unique_ptr<DataInitializerCUDA> data2 = std::make_unique<DataInitializerCUDA>(matrix_size, size, size, power);
             std::unique_ptr<NewtonSolverCUDA> newton_solver2 = std::make_unique<NewtonSolverCUDA>(data2.get());
             newton_solver2->gpu_newton_solve();
             row[1] = data2->total_elapsed_time;
@@ -71,7 +70,7 @@ int main(int argc, char* argv[]) {
         // cuDSS
         //
         {
-            std::unique_ptr<DataInitializerCuDSS> data3 = std::make_unique<DataInitializerCuDSS>(matrix_size, size, size, 3);
+            std::unique_ptr<DataInitializerCuDSS> data3 = std::make_unique<DataInitializerCuDSS>(matrix_size, size, size, power);
             std::unique_ptr<NewtonSolverCuDSS> cuDssSolver = std::make_unique<NewtonSolverCuDSS>(data3.get());
             cuDssSolver->gpu_newton_solver_cudss();
             row[2] = data3->total_elapsed_time;

@@ -1,17 +1,17 @@
-﻿#include "cuda_runtime.h"
+#include <iostream>
+#include <memory>
+#include <vector>
+
+#include "cuda_runtime.h"
 #include "device_launch_parameters.h"
-#include "iostream"
-#include "math.h"
-#include "vector" 
+
 #include "DataInitializerCPU.h"
-#include "memory"
-#include "config.h"
+#include "DataInitializerCuDSS.h"
+#include "NewtonSolverCPU.h"
+#include "NewtonSolverCUDA.h"
 #include "NewtonSolverCuDSS.h"
 #include "FileOperations.h"
-#include <cstdlib>
-#include "NewtonSolverCUDA.h"
-#include <DataInitializerCuDSS.h>
-#include <NewtonSolverCPU.h>
+#include "config.h"
 
 int main(int argc, char* argv[]) {
 
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     for (int size = matrix_size_min; size <= matrix_size_max; size += stride) {
 
         //
-        // CPY
+        // CPU
         //
         {
             std::unique_ptr<DataInitializerCPU> data = std::make_unique<DataInitializerCPU>(size, 0, size, power);

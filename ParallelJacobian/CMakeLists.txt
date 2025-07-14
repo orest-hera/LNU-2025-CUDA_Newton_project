@@ -81,6 +81,17 @@ set_target_properties(ParallelJacobian_DimensionStudy ParallelJacobian_SparsityS
     CUDA_ARCHITECTURES "${CUDA_ARCHITECTURES}"
 )
 
+# Add a custom target to generate version.h
+add_custom_target(gen-version-h
+    ALL
+    COMMAND ${CMAKE_COMMAND}
+        -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
+        -DBINARY_DIR=${CMAKE_BINARY_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/gen-version.cmake
+)
+add_dependencies(my_common_lib gen-version-h)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
 if(WIN32)
     # This flag can sometimes resolve linking issues with default libraries in MSVC
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT")

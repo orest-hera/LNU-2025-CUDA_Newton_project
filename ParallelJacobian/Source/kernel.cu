@@ -13,8 +13,10 @@
 #include "FileOperations.h"
 #include "config.h"
 #include "settings.h"
+#include "version.h"
 
 int main(int argc, char* argv[]) {
+    std::cout << "Version: " << GIT_VERSION_STRING << std::endl;
 
     Settings s;
     if (!s.parse(argc, argv))

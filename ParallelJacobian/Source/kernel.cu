@@ -12,31 +12,18 @@
 #include "NewtonSolverCuDSS.h"
 #include "FileOperations.h"
 #include "config.h"
+#include "settings.h"
 
 int main(int argc, char* argv[]) {
 
-    int matrix_size_max = 1000;
-    int matrix_size_min = 1000;
-    int stride = 100;
-    int power = 3;
-    for (int i = 0; i < argc; i++) {
-        std::string arg = argv[i];
+    Settings s;
+    if (!s.parse(argc, argv))
+        return 1;
 
-        if (arg.find("--power=") == 0) {
-            power = std::stod(arg.substr(8));
-        }
-    }
-    if (argc > 1) {
-        matrix_size_max = std::atoi(argv[1]);
-
-        if (argc > 2) {
-            matrix_size_min = std::atoi(argv[2]);
-
-            if (argc > 3) {
-                stride = std::atoi(argv[3]);
-            }
-        }
-    }
+    int matrix_size_max = s.settings.max;
+    int matrix_size_min = s.settings.min;
+    int stride = s.settings.stride;
+    int power = s.settings.power;
 
     std::unique_ptr<FileOperations> file_op = std::make_unique<FileOperations>();
     std::string header = "CPU,GPU,cuDSS,matrix_size";

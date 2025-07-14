@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
             std::unique_ptr<DataInitializerCPU> data = std::make_unique<DataInitializerCPU>(size, 0, size, power);
             std::unique_ptr<NewtonSolverCPU> newton_solver = std::make_unique<NewtonSolverCPU>(data.get());
             newton_solver->cpu_newton_solve();
-            row[0] = 0;
+            row[0] = data->total_elapsed_time;
         }
 
         //

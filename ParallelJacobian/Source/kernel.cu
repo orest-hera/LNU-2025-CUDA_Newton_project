@@ -29,13 +29,14 @@ int main(int argc, char* argv[]) {
     std::string header = "CPU,GPU,cuDSS,matrix_size";
     file_op->create_file("total_statistic.csv", 3);
     file_op->append_file_headers(header);
-    std::vector<double> row(3);
+    std::vector<double> row{0,0,0};
 
     for (int size = matrix_size_min; size <= matrix_size_max; size += stride) {
 
         //
         // CPU
         //
+        if (s.settings.is_cpu)
         {
             std::unique_ptr<DataInitializerCPU> data = std::make_unique<DataInitializerCPU>(size, 0, size, power);
             std::unique_ptr<NewtonSolverCPU> newton_solver = std::make_unique<NewtonSolverCPU>(data.get());
@@ -44,8 +45,9 @@ int main(int argc, char* argv[]) {
         }
 
         //
-        // GPU
+        // cuBLAS
         //
+        if (s.settings.is_cublas)
         {
             std::unique_ptr<DataInitializerCUDA> data2 = std::make_unique<DataInitializerCUDA>(size, 0, size, power);
             std::unique_ptr<NewtonSolverCUDA> newton_solver2 = std::make_unique<NewtonSolverCUDA>(data2.get());
@@ -56,6 +58,7 @@ int main(int argc, char* argv[]) {
         //
         // cuDSS
         //
+        if (s.settings.is_cudss)
         {
             std::unique_ptr<DataInitializerCuDSS> data3 = std::make_unique<DataInitializerCuDSS>(size, 0, size, power);
             std::unique_ptr<NewtonSolverCuDSS> cuDssSolver = std::make_unique<NewtonSolverCuDSS>(data3.get());

@@ -6,6 +6,9 @@
 Settings::Settings()
 {
     pmap_ = std::map<std::string, Parser>{
+        {"--cpu", { parseBool, &settings.is_cpu }},
+        {"--cublas", { parseBool, &settings.is_cublas }},
+        {"--cudss", { parseBool, &settings.is_cudss }},
         {"--max", { parseUnsigned, &settings.max }},
         {"--min", { parseUnsigned, &settings.min }},
         {"--power", { parseUnsigned, &settings.power }},
@@ -49,6 +52,12 @@ bool Settings::parse(int argc, char* argv[])
         i += parsed;
     }
 
+    if (!settings.is_cpu && !settings.is_cublas && !settings.is_cudss) {
+        settings.is_cpu = true;
+        settings.is_cublas = true;
+        settings.is_cudss = true;
+    }
+
     return true;
 }
 
@@ -84,4 +93,16 @@ int Settings::parseString(ItemType& item,  int argc, char* argv[])
     }
 
     return 2;
+}
+
+int Settings::parseBool(ItemType& item, int argc, char* argv[])
+{
+    try {
+        bool *res = std::get<bool*>(item);
+        *res = true;
+    } catch(...) {
+        return -1;
+    }
+
+    return 1;
 }

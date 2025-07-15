@@ -13,10 +13,14 @@
 #include "FileOperations.h"
 #include "config.h"
 #include "settings.h"
+#include "system-info.h"
 #include "version.h"
 
 int main(int argc, char* argv[]) {
+    SystemInfo sinfo(argc, argv);
+
     std::cout << "Version: " << GIT_VERSION_STRING << std::endl;
+    sinfo.dump(std::cout);
 
     Settings s;
     if (!s.parse(argc, argv))

@@ -12,6 +12,7 @@
 #include "NewtonSolverCuDSS.h"
 #include "FileOperations.h"
 #include "config.h"
+#include "report.h"
 #include "settings.h"
 #include "system-build-info.h"
 #include "system-info.h"
@@ -26,6 +27,15 @@ int main(int argc, char* argv[]) {
         return 1;
 
     SystemInfo sinfo(argc, argv);
+
+    if (s.settings.report_subdir) {
+        std::string path = s.settings.path + "/" + sinfo.getTimeStamp();
+        if (!Report::createReportDir(path))
+            return 2;
+
+        s.settings.path = path;
+    }
+
     sinfo.dump(std::cout);
 
     int matrix_size_max = s.settings.max;

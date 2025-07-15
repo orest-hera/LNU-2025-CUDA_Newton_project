@@ -20,6 +20,7 @@ public:
         bool is_cublas{false};
         bool is_cudss{false};
         std::string path{"../results"};
+        bool report_subdir{false};
     } settings;
 
 private:

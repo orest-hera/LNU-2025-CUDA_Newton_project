@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.24)
 project(ParallelJacobian LANGUAGES CXX CUDA)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 if(WIN32)
     file(GLOB CUDA_DIRS "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v*")
     list(SORT CUDA_DIRS)

@@ -36,6 +36,14 @@ int main(int argc, char* argv[]) {
         s.settings.path = path;
     }
 
+    Report::RedirectOut rdout;
+    if (s.settings.redirect_out) {
+        rdout.redirect(s.settings.path);
+
+        SystemBuildInfo::dump(std::cout);
+        std::cout << std::endl;
+    }
+
     sinfo.dump(std::cout);
 
     int matrix_size_max = s.settings.max;

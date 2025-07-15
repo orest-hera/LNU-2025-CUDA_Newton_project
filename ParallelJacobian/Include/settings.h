@@ -21,6 +21,7 @@ public:
         bool is_cudss{false};
         std::string path{"../results"};
         bool report_subdir{false};
+        bool redirect_out{false};
     } settings;
 
 private:

@@ -8,6 +8,28 @@ namespace fs = std::filesystem;
 
 namespace Report {
 
+RedirectOut::RedirectOut()
+{
+}
+
+RedirectOut::~RedirectOut()
+{
+    if (orig_) {
+        std::cout.rdbuf(orig_);
+    }
+}
+
+void RedirectOut::redirect(std::string dir)
+{
+    if (orig_) {
+        return;
+    }
+    std::string fname = dir + "/console-output";
+    out_.open(fname);
+    orig_ = std::cout.rdbuf();
+    std::cout.rdbuf(out_.rdbuf());
+}
+
 bool createReportDir(std::string path)
 {
     if (fs::exists(path)) {

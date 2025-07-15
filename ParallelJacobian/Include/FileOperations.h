@@ -8,9 +8,10 @@ private:
 	bool isFileExist;
 	std::ofstream my_file;
 	int number_of_columns;
+	std::string path_;
 
 public: 
-	FileOperations();
+	FileOperations(std::string path);
 
 	void create_file(std::string file_name, int number_of_columns);
 	void close_file();

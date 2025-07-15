@@ -19,7 +19,7 @@ public:
         bool is_cpu{false};
         bool is_cublas{false};
         bool is_cudss{false};
-        std::string path;
+        std::string path{"../results"};
     } settings;
 
 private:

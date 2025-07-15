@@ -5,9 +5,12 @@
 #include "config.h"
 #include <chrono>
 
+#include "settings.h"
+
 struct NewtonSolverCPU {
 private:
 	DataInitializerCPU * data;
+	const Settings::SettingsData& settings_;
 
 	void cpu_computeVec();
 	double cpu_compute_derivative(int rowIndex, int colIndex);
@@ -16,7 +19,7 @@ private:
 	void cpu_compute_delta();
 
 public:
-	NewtonSolverCPU(DataInitializerCPU* data);
+	NewtonSolverCPU(DataInitializerCPU* data, const Settings::SettingsData& settings);
 	~NewtonSolverCPU();
 
 	void cpu_newton_solve();

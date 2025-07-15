@@ -12,6 +12,8 @@ public:
     std::string getTimeStamp() const;
 
 private:
+    void dumpDeviceProps(std::ostream& stream) const;
+
     std::string cmd_;
     std::string timestamp_;
 };

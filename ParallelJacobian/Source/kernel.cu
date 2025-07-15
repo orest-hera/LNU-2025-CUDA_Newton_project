@@ -19,6 +19,7 @@
 
 int main(int argc, char* argv[]) {
     SystemBuildInfo::dump(std::cout);
+    std::cout << std::endl;
 
     Settings s;
     if (!s.parse(argc, argv))

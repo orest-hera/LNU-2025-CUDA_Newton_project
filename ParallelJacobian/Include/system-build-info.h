@@ -12,7 +12,8 @@ struct SystemBuildInfo
     static const std::string compilerCxxVer;
     static const std::string cuDssVer;
     static const std::string cudaArchs;
-    static const std::string buildType;
+    static const std::string cmakeBuildType;
+    static const std::string buildConfig;
 
     static void dump(std::ostream&);
 };

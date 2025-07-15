@@ -63,6 +63,11 @@ list(REMOVE_ITEM COMMON_SOURCE_FILES
      "${CMAKE_SOURCE_DIR}/Source/kernel2.cu"
 )
 
+add_compile_options(
+    "$<$<CONFIG:Release,MinSizeRel>:-DBUILD_CONFIG_RELEASE>"
+    "$<$<CONFIG:Debug>:-DBUILD_CONFIG_DEBUG>"
+)
+
 add_library(my_common_lib STATIC ${COMMON_SOURCE_FILES})
 
 add_executable(ParallelJacobian_DimensionStudy "${CMAKE_SOURCE_DIR}/Source/kernel.cu")

@@ -13,18 +13,19 @@
 #include "FileOperations.h"
 #include "config.h"
 #include "settings.h"
+#include "system-build-info.h"
 #include "system-info.h"
 #include "version.h"
 
 int main(int argc, char* argv[]) {
-    SystemInfo sinfo(argc, argv);
-
-    std::cout << "Version: " << GIT_VERSION_STRING << std::endl;
-    sinfo.dump(std::cout);
+    SystemBuildInfo::dump(std::cout);
 
     Settings s;
     if (!s.parse(argc, argv))
         return 1;
+
+    SystemInfo sinfo(argc, argv);
+    sinfo.dump(std::cout);
 
     int matrix_size_max = s.settings.max;
     int matrix_size_min = s.settings.min;

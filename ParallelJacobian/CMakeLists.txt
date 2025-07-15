@@ -18,9 +18,13 @@ if(WIN32)
     list(GET CUDSS_DIRS 0 CUDSS_PATH)
     string(REGEX MATCH "v([0-9]+\\.[0-9]+)" _cudss_ver_match "${CUDSS_PATH}")
     string(REPLACE "v" "" CUDSS_VERSION "${_cudss_ver_match}")
+    set(cudss_DIR "${CUDSS_PATH}/lib/12/cmake/cudss")
     message(STATUS "Detected cuDSS path: ${CUDSS_PATH}")
     message(STATUS "Detected cuDSS version: ${CUDSS_VERSION}")
 endif()
+
+find_package(cudss)
+message (STATUS "cuDSS version: ${cudss_VERSION}")
 
 if(UNIX)
     set(CUDA_PATH "/usr/local/cuda")
@@ -90,6 +94,13 @@ add_custom_target(gen-version-h
     COMMAND ${CMAKE_COMMAND}
         -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
         -DBINARY_DIR=${CMAKE_BINARY_DIR}
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCUDA_ARCHITECTURES=${CUDA_ARCHITECTURES}
+        -DCMAKE_CUDA_COMPILER_ID=${CMAKE_CUDA_COMPILER_ID}
+        -DCMAKE_CXX_COMPILER_ID=${CMAKE_CXX_COMPILER_ID}
+        -DCMAKE_CUDA_COMPILER_VERSION=${CMAKE_CUDA_COMPILER_VERSION}
+        -DCMAKE_CXX_COMPILER_VERSION=${CMAKE_CXX_COMPILER_VERSION}
+        -DCMAKE_CUDSS_VERSION=${cudss_VERSION}
         -P ${CMAKE_CURRENT_SOURCE_DIR}/gen-version.cmake
 )
 add_dependencies(my_common_lib gen-version-h)

@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.24)
 project(ParallelJacobian LANGUAGES CXX CUDA)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 if(WIN32)
     file(GLOB CUDA_DIRS "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v*")
     list(SORT CUDA_DIRS)
@@ -15,9 +18,13 @@ if(WIN32)
     list(GET CUDSS_DIRS 0 CUDSS_PATH)
     string(REGEX MATCH "v([0-9]+\\.[0-9]+)" _cudss_ver_match "${CUDSS_PATH}")
     string(REPLACE "v" "" CUDSS_VERSION "${_cudss_ver_match}")
+    set(cudss_DIR "${CUDSS_PATH}/lib/12/cmake/cudss")
     message(STATUS "Detected cuDSS path: ${CUDSS_PATH}")
     message(STATUS "Detected cuDSS version: ${CUDSS_VERSION}")
 endif()
+
+find_package(cudss)
+message (STATUS "cuDSS version: ${cudss_VERSION}")
 
 if(UNIX)
     set(CUDA_PATH "/usr/local/cuda")
@@ -56,6 +63,11 @@ list(REMOVE_ITEM COMMON_SOURCE_FILES
      "${CMAKE_SOURCE_DIR}/Source/kernel2.cu"
 )
 
+add_compile_options(
+    "$<$<CONFIG:Release,MinSizeRel>:-DBUILD_CONFIG_RELEASE>"
+    "$<$<CONFIG:Debug>:-DBUILD_CONFIG_DEBUG>"
+)
+
 add_library(my_common_lib STATIC ${COMMON_SOURCE_FILES})
 
 add_executable(ParallelJacobian_DimensionStudy "${CMAKE_SOURCE_DIR}/Source/kernel.cu")
@@ -80,6 +92,24 @@ set_target_properties(ParallelJacobian_DimensionStudy ParallelJacobian_SparsityS
     CUDA_SEPARABLE_COMPILATION ON # Generally good practice for large CUDA projects
     CUDA_ARCHITECTURES "${CUDA_ARCHITECTURES}"
 )
+
+# Add a custom target to generate version.h
+add_custom_target(gen-version-h
+    ALL
+    COMMAND ${CMAKE_COMMAND}
+        -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
+        -DBINARY_DIR=${CMAKE_BINARY_DIR}
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCUDA_ARCHITECTURES=${CUDA_ARCHITECTURES}
+        -DCMAKE_CUDA_COMPILER_ID=${CMAKE_CUDA_COMPILER_ID}
+        -DCMAKE_CXX_COMPILER_ID=${CMAKE_CXX_COMPILER_ID}
+        -DCMAKE_CUDA_COMPILER_VERSION=${CMAKE_CUDA_COMPILER_VERSION}
+        -DCMAKE_CXX_COMPILER_VERSION=${CMAKE_CXX_COMPILER_VERSION}
+        -DCMAKE_CUDSS_VERSION=${cudss_VERSION}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/gen-version.cmake
+)
+add_dependencies(my_common_lib gen-version-h)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 if(WIN32)
     # This flag can sometimes resolve linking issues with default libraries in MSVC

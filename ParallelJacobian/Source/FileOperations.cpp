@@ -1,14 +1,16 @@
 #include "FileOperations.h"
 #include <iostream>
 
-FileOperations::FileOperations() {
+FileOperations::FileOperations(std::string path)
+	: path_{path}
+{
 	isFileExist = false;
 	number_of_columns = 0;
-};
+}
 
 void FileOperations::create_file(std::string file_name, int number_of_columns) {
 	if (!isFileExist) {
-		std::string file_path = "../results/" + file_name;
+		std::string file_path = path_ + "/" + file_name;
 		my_file.open(file_path);
 		std::cout << "File created: " << file_name << std::endl;
 		isFileExist = true;

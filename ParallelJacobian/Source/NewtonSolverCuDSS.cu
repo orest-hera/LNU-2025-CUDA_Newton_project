@@ -11,7 +11,10 @@
 #include "EditionalTools.h"
 #include <DataInitializerCuDSS.h>
 
-NewtonSolverCuDSS::NewtonSolverCuDSS(DataInitializerCuDSS* data) {
+NewtonSolverCuDSS::NewtonSolverCuDSS(DataInitializerCuDSS* data,
+		const Settings::SettingsData& settings)
+	: settings_{settings}
+{
 	this->data = data;
 }
 
@@ -114,7 +117,7 @@ __global__ void gpu_compute_jacobian_csr(double* csr_values_d, int* csr_columns_
 }
 
 void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
-	std::unique_ptr<FileOperations> file_op = std::make_unique<FileOperations>();
+	std::unique_ptr<FileOperations> file_op = std::make_unique<FileOperations>(settings_.path);
 	std::string file_name = "gpu_cudss_newton_solver_" + std::to_string(data->file_name) + ".csv";
 	file_op->create_file(file_name, 4);
 	file_op->append_file_headers("func_value_t,jacobian_value_t,delta_value_t,update_points_t,matrix_size");

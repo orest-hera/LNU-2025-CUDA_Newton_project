@@ -17,7 +17,7 @@ int NewtonSolverMKLdss::count_non_zero_elements(double* matrix_A) {
 	return non_zero_count;
 }
 
-void NewtonSolverMKLdss::parse_to_csr(int* csr_cols, int* csr_rows, double* csr_values, double* matrix_A) {
+void NewtonSolverMKLdss::parse_to_csr(MKL_INT* csr_cols, MKL_INT* csr_rows, double* csr_values, double* matrix_A) {
 	int non_zero_count = 0;
 	csr_rows[0] = 0;
 	for (int i = 0; i < data->MATRIX_SIZE; ++i) {
@@ -46,7 +46,7 @@ void NewtonSolverMKLdss::cpu_computeVec() {
             sum += data->equation->calculate_term_value(index, x);
         }
 
-        data->funcs_value_h[i] = -(sum - data->vector_b_h[i]);
+        data->funcs_value_h[i] = (sum - data->vector_b_h[i]);
     }
 }
 
@@ -78,37 +78,19 @@ void NewtonSolverMKLdss::cpu_mkl_dss_find_delta() {
 	if (!data->analyzed){
 		static const MKL_INT size = data->MATRIX_SIZE;
 		static const MKL_INT nnz = data->csr_rows_h[data->MATRIX_SIZE];
-		// for (int i = 0; i < data->MATRIX_SIZE; i++){
-		// 	data->csr_rows_h[i] += 1;
-		// 	for (int j = 0; j < data->MATRIX_SIZE; j++){
-		// 		data->csr_cols_h[i * data->MATRIX_SIZE + j] += 1;
-		// 	}
-		// }
-		// static MKL_INT* csr_cols = new MKL_INT[data->csr_rows_h[data->MATRIX_SIZE]];
-		// static MKL_INT* csr_rows = new MKL_INT[data->MATRIX_SIZE + 1];
-		info = dss_define_structure(data->handle, data->sym, data->csr_rows_h, 
+
+		dss_define_structure(data->handle, data->sym, data->csr_rows_h, 
 							size, size, data->csr_cols_h,
 		nnz);
-		std::cout << "MATRIX_SIZE" << data->MATRIX_SIZE << std::endl;
-		std::cout << data->non_zero_count << " " << data->csr_rows_h[data->MATRIX_SIZE] << std::endl;
-		
-		
-						// int perm = 0;
-		static MKL_INT* perm = new MKL_INT[data->MATRIX_SIZE]();
-		// for (int i = 0; i < data->MATRIX_SIZE; i++){
-		// 	perm[i] = 0;
-		// }
-		std::cout << "dss_define_structure : " << info << std::endl;		
-		info = dss_reorder(data->handle, data->order, perm);
+	
+		dss_reorder(data->handle, data->order, 0);
 						data->analyzed = true;
-						std::cout << "dss_reorder : " << info << std::endl;
 	}
 
-	info = dss_factor_real(data->handle, data->type, data->jacobian);
-	std::cout << "dss_factor_real : " << info << std::endl;
+	dss_factor_real(data->handle, data->type, data->jacobian);
 
-	info = dss_solve_real(data->handle, data->opt, data->funcs_value_h, data->MATRIX_SIZE, data->delta_h);
-	std::cout << "dss_solve_real : " << info << std::endl;
+	MKL_INT nrhs = 1;
+	dss_solve_real(data->handle, data->opt, data->funcs_value_h, nrhs, data->delta_h);
 }
 
 void NewtonSolverMKLdss::cpu_newton_solve() {

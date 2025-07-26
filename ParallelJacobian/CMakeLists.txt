@@ -27,6 +27,9 @@ find_package(cudss)
 find_package(MKL REQUIRED)
 message (STATUS "cuDSS version: ${cudss_VERSION}")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMKL_ILP64")
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -DMKL_ILP64")
+
 if(UNIX)
     set(CUDA_PATH "/usr/local/cuda")
     set(CUDSS_PATH "/usr/local/cudss")

@@ -51,16 +51,7 @@ void NewtonSolverMKLlapack::cpu_compute_jacobian() {
     }
 }
 
-void NewtonSolverMKLlapack::cpu_compute_delta() {
-    for (int i = 0; i < data->MATRIX_SIZE; i++) {
-        data->delta_h[i] = 0.0;
-        for (int j = 0; j < data->MATRIX_SIZE; j++) {
-            data->delta_h[i] -= data->jacobian_h[i * data->MATRIX_SIZE + j] * data->funcs_value_h[j];
-        }
-    }
-}
-
-void NewtonSolverMKLlapack::cpu_lapack_inverse(){
+void NewtonSolverMKLlapack::cpu_find_delta(){
     MKL_INT *ipiv = new MKL_INT[data->MATRIX_SIZE];
     int info;
     info = LAPACKE_dgetrf(LAPACK_COL_MAJOR, data->MATRIX_SIZE, data->MATRIX_SIZE, data->jacobian_h, data->MATRIX_SIZE, ipiv);
@@ -69,10 +60,11 @@ void NewtonSolverMKLlapack::cpu_lapack_inverse(){
         std::cerr << "dgetrf error: " << info << std::endl;
     exit(EXIT_FAILURE);
     }   
-    
-    info = LAPACKE_dgetri(LAPACK_COL_MAJOR, data->MATRIX_SIZE, data->jacobian_h, data->MATRIX_SIZE, ipiv);
+
+    info = LAPACKE_dgetrs(LAPACK_COL_MAJOR, 'T', data->MATRIX_SIZE, 1, data->jacobian_h, data->MATRIX_SIZE,
+        ipiv, data->funcs_value_h, data->MATRIX_SIZE);
     if (info != 0) {
-    std::cerr << "dgetri error: " << info << std::endl;
+    std::cerr << "dgetrs error: " << info << std::endl;
     exit(EXIT_FAILURE);
 }
     delete[] ipiv;
@@ -117,7 +109,7 @@ void NewtonSolverMKLlapack::cpu_newton_solve() {
 #ifdef INTERMEDIATE_RESULTS
 		start = std::chrono::steady_clock::now();
 #endif
-        cpu_lapack_inverse();
+        cpu_find_delta();
 #ifdef INTERMEDIATE_RESULTS
 		end = std::chrono::steady_clock::now();
 		elapsed = end - start;
@@ -127,20 +119,10 @@ void NewtonSolverMKLlapack::cpu_newton_solve() {
 #ifdef INTERMEDIATE_RESULTS
 		start = std::chrono::steady_clock::now();
 #endif
-        cpu_compute_delta();
-#ifdef INTERMEDIATE_RESULTS
-		end = std::chrono::steady_clock::now();
-		elapsed = end - start;
-        data->intermediate_results[3] = elapsed.count();
-#endif
-
-#ifdef INTERMEDIATE_RESULTS
-		start = std::chrono::steady_clock::now();
-#endif
         dx = 0;
         for (int i = 0; i < data->MATRIX_SIZE; ++i) {
-            data->points_h[i] += data->delta_h[i];
-            dx = std::max(dx, std::abs(data->delta_h[i]));
+            data->points_h[i] -= data->funcs_value_h[i];
+            dx = std::max(dx, std::abs(data->funcs_value_h[i]));
         }
 #ifdef INTERMEDIATE_RESULTS
 		end = std::chrono::steady_clock::now();

@@ -12,8 +12,7 @@ private:
     void cpu_computeVec();
 	double cpu_compute_derivative(int rowIndex, int colIndex);
     void cpu_compute_jacobian();
-    void cpu_lapack_inverse();
-    void cpu_compute_delta();
+    void cpu_find_delta();
 
 public:
     NewtonSolverMKLlapack(DataInitializerMKLlapack* data, const Settings::SettingsData& settings);

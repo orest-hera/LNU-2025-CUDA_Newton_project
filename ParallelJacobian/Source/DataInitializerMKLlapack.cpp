@@ -4,11 +4,9 @@ DataInitializerMKLlapack::DataInitializerMKLlapack(int MATRIX_SIZE, int zeros_el
 	: DataInitializer(MATRIX_SIZE, zeros_elements_per_row, file_name, power) {
 	funcs_value_h = new double[MATRIX_SIZE];
 	jacobian_h = new double[MATRIX_SIZE * MATRIX_SIZE];
-	delta_h = new double[MATRIX_SIZE];
 };
 
 DataInitializerMKLlapack::~DataInitializerMKLlapack() {
 	delete[] funcs_value_h;
 	delete[] jacobian_h;
-	delete[] delta_h;
 }

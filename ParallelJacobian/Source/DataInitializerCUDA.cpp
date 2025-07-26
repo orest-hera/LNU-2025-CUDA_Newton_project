@@ -17,7 +17,7 @@ DataInitializerCUDA::DataInitializerCUDA(int MATRIX_SIZE, int zeros_elements_per
 	cudaMalloc((void**)&cublas_ajacobian_d, sizeof(double*));
 	cudaMalloc((void**)&cublas_ainverse_jacobian_d, sizeof(double*));
 	cudaMemcpy(cublas_ajacobian_d, &jacobian_d, sizeof(double*), cudaMemcpyHostToDevice);
-	cudaMemcpy(cublas_ainverse_jacobian_d, &inverse_jacobian_d, sizeof(double*), cudaMemcpyHostToDevice);
+	cudaMemcpy(cublas_ainverse_jacobian_d, &funcs_value_d, sizeof(double*), cudaMemcpyHostToDevice);
 
 	intermediate_funcs_value_h = new double[x_blocks_count * MATRIX_SIZE];
 	delta_h = new double[x_blocks_count * MATRIX_SIZE];

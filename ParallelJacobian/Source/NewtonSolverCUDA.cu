@@ -21,7 +21,7 @@ NewtonSolverCUDA::~NewtonSolverCUDA() {
 void NewtonSolverCUDA::gpu_cublasInverse(DataInitializerCUDA* data) {
     cublasStatus_t status2 = cublasDgetrfBatched(data->cublasContextHandler, data->MATRIX_SIZE, data->cublas_ajacobian_d, data->MATRIX_SIZE, data->cublas_pivot, data->cublas_info, 1);
     int info = 0;
-    cublasStatus_t status = cublasDgetrsBatched(data->cublasContextHandler, CUBLAS_OP_T, data->MATRIX_SIZE, 1, data->cublas_ajacobian_d, data->MATRIX_SIZE, data->cublas_pivot, data->cublas_ainverse_jacobian_d, data->MATRIX_SIZE, &info, 1);
+    cublasStatus_t status = cublasDgetrsBatched(data->cublasContextHandler, CUBLAS_OP_T, data->MATRIX_SIZE, 1, data->cublas_ajacobian_d, data->MATRIX_SIZE, data->cublas_pivot, data->cublas_afunc_values_d, data->MATRIX_SIZE, &info, 1);
 }
 
 void NewtonSolverCUDA::gpu_newton_solve() {

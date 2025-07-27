@@ -74,7 +74,6 @@ void NewtonSolverMKLdss::cpu_compute_jacobian() {
 }
 
 void NewtonSolverMKLdss::cpu_mkl_dss_find_delta() {
-	int info;
 	if (!data->analyzed){
 		static const MKL_INT size = data->MATRIX_SIZE;
 		static const MKL_INT nnz = data->csr_rows_h[data->MATRIX_SIZE];
@@ -117,7 +116,6 @@ void NewtonSolverMKLdss::cpu_newton_solve() {
 #endif
 
 		cpu_computeVec();	
-		std::cout << "Vec" << std::endl;
 
 #ifdef INTERMEDIATE_RESULTS
 		auto end = std::chrono::steady_clock::now();
@@ -125,7 +123,6 @@ void NewtonSolverMKLdss::cpu_newton_solve() {
 		start = std::chrono::steady_clock::now();
 #endif
 		cpu_compute_jacobian();
-		std::cout << "Jacobian" << std::endl;
 
 #ifdef INTERMEDIATE_RESULTS
 		end = std::chrono::steady_clock::now();
@@ -134,20 +131,15 @@ void NewtonSolverMKLdss::cpu_newton_solve() {
 #endif
 
 		cpu_mkl_dss_find_delta();
-		std::cout << "Delta" << std::endl;
 #ifdef INTERMEDIATE_RESULTS
 		end = std::chrono::steady_clock::now();
 		data->intermediate_results[2] = std::chrono::duration<double>(end - start).count();
 		start = std::chrono::steady_clock::now();
 #endif
 		dx = 0.0;
-		for (size_t i = 0; i < data->MATRIX_SIZE; ++i) {
+		for (int i = 0; i < data->MATRIX_SIZE; ++i) {
 			data->points_h[i] -= data->delta_h[i];
 			dx = std::max(dx, std::abs(data->delta_h[i]));
-		}
-
-		for (int i = 0; i < data->MATRIX_SIZE; i++) {
-			std::cout << data->points_h[i] << std::endl;
 		}
 
 #ifdef INTERMEDIATE_RESULTS

@@ -19,6 +19,8 @@ public:
         bool is_cpu{false};
         bool is_cublas{false};
         bool is_cudss{false};
+        bool is_mkl_dss{false};
+        bool is_mkl_lapack{false};
         std::string path{"../results"};
         bool report_subdir{false};
         bool redirect_out{false};

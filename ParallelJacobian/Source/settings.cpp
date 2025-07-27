@@ -9,6 +9,8 @@ Settings::Settings()
         {"--cpu", { parseBool, &settings.is_cpu }},
         {"--cublas", { parseBool, &settings.is_cublas }},
         {"--cudss", { parseBool, &settings.is_cudss }},
+        {"--mkl-dss", { parseBool, &settings.is_mkl_dss }},
+        {"--mkl-lapack", { parseBool, &settings.is_mkl_lapack }},
         {"--max", { parseUnsigned, &settings.max }},
         {"--min", { parseUnsigned, &settings.min }},
         {"--power", { parseUnsigned, &settings.power }},
@@ -54,10 +56,13 @@ bool Settings::parse(int argc, char* argv[])
         i += parsed;
     }
 
-    if (!settings.is_cpu && !settings.is_cublas && !settings.is_cudss) {
+    if (!settings.is_cpu && !settings.is_cublas && !settings.is_cudss &&
+            !settings.is_mkl_dss && !settings.is_mkl_lapack) {
         settings.is_cpu = true;
         settings.is_cublas = true;
         settings.is_cudss = true;
+        settings.is_mkl_dss = true;
+        settings.is_mkl_lapack = true;
     }
 
     return true;

@@ -7,9 +7,13 @@
 
 #include "DataInitializerCPU.h"
 #include "DataInitializerCuDSS.h"
+#include "DataInitializerMKLdss.h"
+#include "DataInitializerMKLlapack.h"
 #include "NewtonSolverCPU.h"
 #include "NewtonSolverCUDA.h"
 #include "NewtonSolverCuDSS.h"
+#include "NewtonSolverMKLdss.h"
+#include "NewtonSolverMKLlapack.h"
 #include "FileOperations.h"
 #include "config.h"
 #include "report.h"
@@ -52,10 +56,10 @@ int main(int argc, char* argv[]) {
     int power = s.settings.power;
 
     std::unique_ptr<FileOperations> file_op = std::make_unique<FileOperations>(s.settings.path);
-    std::string header = "CPU,GPU,cuDSS,matrix_size";
-    file_op->create_file("total_statistic.csv", 3);
+    std::string header = "CPU,GPU,cuDSS,MKL_Lapack,MKL_DSS,matrix_size";
+    file_op->create_file("total_statistic.csv", 5);
     file_op->append_file_headers(header);
-    std::vector<double> row{0,0,0};
+    std::vector<double> row{0,0,0,0,0};
 
     for (int size = matrix_size_min; size <= matrix_size_max; size += stride) {
 
@@ -91,6 +95,29 @@ int main(int argc, char* argv[]) {
             cuDssSolver->gpu_newton_solver_cudss();
             row[2] = data3->total_elapsed_time;;
         }
+
+        //
+        // MKL Lapack
+        //
+        if (s.settings.is_mkl_lapack)
+        {
+            auto data = std::make_unique<DataInitializerMKLlapack>(size, 0, size, power);
+            auto mklLapackSolver = std::make_unique<NewtonSolverMKLlapack>(data.get(), s.settings);
+            mklLapackSolver->cpu_newton_solve();
+            row[3] = data->total_elapsed_time;;
+        }
+
+        //
+        // MKL DSS
+        //
+        if (s.settings.is_mkl_dss)
+        {
+            auto data = std::make_unique<DataInitializerMKLdss>(size, 0, size, power);
+            auto mklDssSolver = std::make_unique<NewtonSolverMKLdss>(data.get(), s.settings);
+            mklDssSolver->cpu_newton_solve();
+            row[4] = data->total_elapsed_time;;
+        }
+
         file_op->append_file_data(row, size);
     }
     return 0;

@@ -19,8 +19,28 @@ NewtonSolverCUDA::NewtonSolverCUDA(DataInitializerCUDA* dataInitializer,
 NewtonSolverCUDA::~NewtonSolverCUDA() {
 }
 void NewtonSolverCUDA::gpu_cublasInverse(DataInitializerCUDA* data) {
-    cublasStatus_t status2 = cublasDgetrfBatched(data->cublasContextHandler, data->MATRIX_SIZE, data->cublas_ajacobian_d, data->MATRIX_SIZE, data->cublas_pivot, data->cublas_info, 1);
-    cublasStatus_t status = cublasDgetriBatched(data->cublasContextHandler, data->MATRIX_SIZE, (const double**)data->cublas_ajacobian_d, data->MATRIX_SIZE, data->cublas_pivot, data->cublas_ainverse_jacobian_d, data->MATRIX_SIZE, data->cublas_info, 1);
+    cublasStatus_t s1 = cublasDgetrfBatched(
+                data->cublasContextHandler, data->MATRIX_SIZE,
+                data->cublas_ajacobian_d, data->MATRIX_SIZE,
+                nullptr, //data->cublas_pivot,
+                data->cublas_info, 1);
+
+    const double alpha = 1.0;
+    cublasStatus_t s2 = cublasDtrsm(
+                data->cublasContextHandler, CUBLAS_SIDE_LEFT,
+                CUBLAS_FILL_MODE_LOWER, CUBLAS_OP_N, CUBLAS_DIAG_UNIT,
+                data->MATRIX_SIZE, 1, &alpha,
+                data->jacobian_d, data->MATRIX_SIZE,
+                data->funcs_value_d, data->MATRIX_SIZE);
+
+    cublasStatus_t s3 = cublasDtrsm(
+                data->cublasContextHandler, CUBLAS_SIDE_LEFT,
+                CUBLAS_FILL_MODE_UPPER, CUBLAS_OP_N, CUBLAS_DIAG_NON_UNIT,
+                data->MATRIX_SIZE, 1, &alpha,
+                data->jacobian_d, data->MATRIX_SIZE,
+                data->funcs_value_d, data->MATRIX_SIZE);
+
+    std::cout << "TRF/TRS status: " << s1 << " " << s2 << " " << s3 << std::endl;
 }
 
 void NewtonSolverCUDA::gpu_newton_solve() {
@@ -95,32 +115,18 @@ void NewtonSolverCUDA::gpu_newton_solve() {
 #ifdef INTERMEDIATE_RESULTS
 		end = std::chrono::steady_clock::now();
         data->intermediate_results[2] = std::chrono::duration<double>(end - start).count();
-		start = std::chrono::steady_clock::now();
 #endif
 
-        NewtonSolverGPUFunctions::gpu_compute_delta_values << <gridDim, blockDim, blockDim.x * sizeof(double) >> > (
-            data->funcs_value_d, data->inverse_jacobian_d, data->delta_d, data->MATRIX_SIZE, version);
-        cudaDeviceSynchronize();
-
-        cudaMemcpy(data->delta_h, data->delta_d, x_blocks_count * data->MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
-
-        for (int i = 0; i < data->MATRIX_SIZE; i++) {
-            delta[i] = 0;
-            for (int j = 0; j < x_blocks_count; j++) {
-                delta[i] -= data->delta_h[i * x_blocks_count + j];
-            }
-        }
-
 #ifdef INTERMEDIATE_RESULTS
-		end = std::chrono::steady_clock::now();
         data->intermediate_results[3] = std::chrono::duration<double>(end - start).count();
 		start = std::chrono::steady_clock::now();
 #endif
 
+        cudaMemcpy(data->funcs_value_h, data->funcs_value_d, data->MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
         dx = 0.0;
         for (size_t i = 0; i < data->MATRIX_SIZE; ++i) {
-            data->points_h[i] += delta[i];
-            dx = std::max(dx, std::abs(delta[i]));
+            data->points_h[i] -= data->funcs_value_h[i];
+            dx = std::max(dx, std::abs(data->funcs_value_h[i]));
         }
 
         cudaMemcpy(data->points_d, data->points_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);

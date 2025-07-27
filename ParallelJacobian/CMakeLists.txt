@@ -24,7 +24,11 @@ if(WIN32)
 endif()
 
 find_package(cudss)
+find_package(MKL REQUIRED)
 message (STATUS "cuDSS version: ${cudss_VERSION}")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMKL_ILP64")
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -DMKL_ILP64")
 
 if(UNIX)
     set(CUDA_PATH "/usr/local/cuda")
@@ -71,10 +75,12 @@ add_compile_options(
 add_library(my_common_lib STATIC ${COMMON_SOURCE_FILES})
 
 add_executable(ParallelJacobian_DimensionStudy "${CMAKE_SOURCE_DIR}/Source/kernel.cu")
-target_link_libraries(ParallelJacobian_DimensionStudy PRIVATE my_common_lib cudss cublas)
+target_link_libraries(ParallelJacobian_DimensionStudy PRIVATE my_common_lib cudss cublas MKL::MKL)
+target_include_directories(ParallelJacobian_DimensionStudy PRIVATE $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
 
 add_executable(ParallelJacobian_SparsityStudy "${CMAKE_SOURCE_DIR}/Source/kernel2.cu")
-target_link_libraries(ParallelJacobian_SparsityStudy PRIVATE my_common_lib cudss cublas)
+target_link_libraries(ParallelJacobian_SparsityStudy PRIVATE my_common_lib cudss cublas MKL::MKL)
+target_include_directories(ParallelJacobian_SparsityStudy PRIVATE $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)

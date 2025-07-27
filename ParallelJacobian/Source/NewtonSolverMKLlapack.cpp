@@ -52,7 +52,7 @@ void NewtonSolverMKLlapack::cpu_compute_jacobian() {
 }
 
 void NewtonSolverMKLlapack::cpu_find_delta(){
-    MKL_INT *ipiv = new MKL_INT[data->MATRIX_SIZE];
+    lapack_int *ipiv = new lapack_int[data->MATRIX_SIZE];
     int info;
     info = LAPACKE_dgetrf(LAPACK_COL_MAJOR, data->MATRIX_SIZE, data->MATRIX_SIZE, data->jacobian_h, data->MATRIX_SIZE, ipiv);
     

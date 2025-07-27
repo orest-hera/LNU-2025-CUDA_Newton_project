@@ -12,7 +12,8 @@ public:
     double* funcs_value_h{ nullptr },
 		* delta_h{ nullptr };
 
-	int non_zero_count{ 0 };
+    MKL_INT non_zero_count{ 0 };
+    MKL_INT matrix_size { 0 };
 
     MKL_INT opt = MKL_DSS_MSG_LVL_WARNING + MKL_DSS_TERM_LVL_ERROR + MKL_DSS_ZERO_BASED_INDEXING;
     MKL_INT sym = MKL_DSS_NON_SYMMETRIC;

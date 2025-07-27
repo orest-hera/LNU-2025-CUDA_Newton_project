@@ -26,9 +26,21 @@ void NewtonSolverMKLdss::parse_to_csr(MKL_INT* csr_cols, MKL_INT* csr_rows, doub
 				csr_cols[non_zero_count] = j;
 				csr_values[non_zero_count] = matrix_A[i * data->MATRIX_SIZE + j];
 				non_zero_count++;
+
+				// sanity check
+				if (non_zero_count > data->non_zero_count) {
+					std::cout << "ERROR parse_to_scr nnz:" << non_zero_count
+						<< ", data nnz: " << data->non_zero_count << std::endl;
+					return;
+				}
 			}
 		}
 		csr_rows[i + 1] = non_zero_count;
+	}
+	// sanity check
+	if (non_zero_count != data->non_zero_count) {
+		std::cout << "ERROR parse_to_scr different nnz:" << non_zero_count
+			<< ", data nnz: " << data->non_zero_count << std::endl;
 	}
 }
 
@@ -74,21 +86,19 @@ void NewtonSolverMKLdss::cpu_compute_jacobian() {
 }
 
 void NewtonSolverMKLdss::cpu_mkl_dss_find_delta() {
-	if (!data->analyzed){
-		static const MKL_INT size = data->MATRIX_SIZE;
-		static const MKL_INT nnz = data->csr_rows_h[data->MATRIX_SIZE];
+	if (!data->analyzed) {
+		dss_define_structure(
+				data->handle, data->sym, data->csr_rows_h,
+				data->matrix_size, data->matrix_size, data->csr_cols_h,
+				data->non_zero_count);
 
-		dss_define_structure(data->handle, data->sym, data->csr_rows_h, 
-							size, size, data->csr_cols_h,
-		nnz);
-	
 		dss_reorder(data->handle, data->order, 0);
-						data->analyzed = true;
+		data->analyzed = true;
 	}
 
 	dss_factor_real(data->handle, data->type, data->jacobian);
 
-	MKL_INT nrhs = 1;
+	static const MKL_INT nrhs = 1;
 	dss_solve_real(data->handle, data->opt, data->funcs_value_h, nrhs, data->delta_h);
 }
 

@@ -14,6 +14,7 @@ int DataInitializerMKLdss::count_non_zero_elements(double* matrix_A) {
 DataInitializerMKLdss::DataInitializerMKLdss(int MATRIX_SIZE, int zeros_elements_per_row, int file_name, int power)
     : DataInitializer(MATRIX_SIZE, zeros_elements_per_row, file_name, power){
 	// Allocate memory for CSR representation
+	matrix_size = MATRIX_SIZE;
 	non_zero_count = count_non_zero_elements(indexes_h);
 	csr_values_h = new double[non_zero_count];
 	jacobian = new double[non_zero_count];

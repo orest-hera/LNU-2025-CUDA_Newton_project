@@ -19,9 +19,28 @@ NewtonSolverCUDA::NewtonSolverCUDA(DataInitializerCUDA* dataInitializer,
 NewtonSolverCUDA::~NewtonSolverCUDA() {
 }
 void NewtonSolverCUDA::gpu_cublasInverse(DataInitializerCUDA* data) {
-    cublasStatus_t status2 = cublasDgetrfBatched(data->cublasContextHandler, data->MATRIX_SIZE, data->cublas_ajacobian_d, data->MATRIX_SIZE, data->cublas_pivot, data->cublas_info, 1);
-    int info = 0;
-    cublasStatus_t status = cublasDgetrsBatched(data->cublasContextHandler, CUBLAS_OP_T, data->MATRIX_SIZE, 1, data->cublas_ajacobian_d, data->MATRIX_SIZE, data->cublas_pivot, data->cublas_afunc_values_d, data->MATRIX_SIZE, &info, 1);
+    cublasStatus_t s1 = cublasDgetrfBatched(
+                data->cublasContextHandler, data->MATRIX_SIZE,
+                data->cublas_ajacobian_d, data->MATRIX_SIZE,
+                nullptr, //data->cublas_pivot,
+                data->cublas_info, 1);
+
+    const double alpha = 1.0;
+    cublasStatus_t s2 = cublasDtrsm(
+                data->cublasContextHandler, CUBLAS_SIDE_LEFT,
+                CUBLAS_FILL_MODE_LOWER, CUBLAS_OP_N, CUBLAS_DIAG_UNIT,
+                data->MATRIX_SIZE, 1, &alpha,
+                data->jacobian_d, data->MATRIX_SIZE,
+                data->funcs_value_d, data->MATRIX_SIZE);
+
+    cublasStatus_t s3 = cublasDtrsm(
+                data->cublasContextHandler, CUBLAS_SIDE_LEFT,
+                CUBLAS_FILL_MODE_UPPER, CUBLAS_OP_N, CUBLAS_DIAG_NON_UNIT,
+                data->MATRIX_SIZE, 1, &alpha,
+                data->jacobian_d, data->MATRIX_SIZE,
+                data->funcs_value_d, data->MATRIX_SIZE);
+
+    std::cout << "TRF/TRS status: " << s1 << " " << s2 << " " << s3 << std::endl;
 }
 
 void NewtonSolverCUDA::gpu_newton_solve() {

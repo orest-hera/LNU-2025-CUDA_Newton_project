@@ -17,6 +17,64 @@ void random_shuffle(It first, It last, G& gen)
     }
 }
 
+static std::vector<double> generate_row(
+        std::mt19937& gen, std::vector<int>& pos, double &b, int row, int size,
+        int nnz, const double *points, const Equation* eqn)
+{
+    auto rand_max = gen.max();
+
+    std::vector<int> p;
+    p.reserve(size);
+
+    p.push_back(row);
+
+    for (int i = 0; i < size; ++i) {
+        if (i != row) {
+            p.push_back(i);
+        }
+    }
+
+    random_shuffle(p.begin() + 1, p.end(), gen);
+
+    pos.clear();
+    std::copy(p.begin(), p.begin() + nnz, std::back_inserter(pos));
+    std::sort(pos.begin(), pos.end());
+
+    std::vector<double> vals;
+    vals.reserve(nnz);
+
+    for (int i = 0; i < nnz; ++i) {
+        double v = static_cast<double>(gen()) / rand_max;
+        vals.push_back(v);
+    }
+
+    double sum = 0.0;
+    int diagonal_idx = -1;
+
+    for (int idx = 0; idx < nnz; idx++) {
+        if (pos[idx] == row) {
+            diagonal_idx = idx;
+        }
+        else {
+            sum += std::abs(vals[idx]);
+        }
+    }
+
+    if (diagonal_idx != -1) {
+        if ((sum + 1e-7) >= std::abs(vals[diagonal_idx])) {
+            vals[diagonal_idx] = sum + 1.0;
+        }
+    }
+
+    b = 0;
+    for (int i = 0; i < nnz; ++i) {
+        b += eqn->calculate_term_value(vals[i], points[pos[i]]);
+    }
+
+    return vals;
+}
+
+
 void tools::generate_sparse_initial_indexes_matrix_and_vector_b(
     double* matrix,
     double* b,
@@ -104,59 +162,26 @@ void tools::generate_sparse_initial_indexes_matrix_and_vector_b(
     int current_pos = 0;
 
     for (int i = 0; i < MATRIX_SIZE; i++) {
-        std::vector<int> positions;
-        positions.reserve(MATRIX_SIZE);
-
-        positions.push_back(i);
-
-        for (int j = 0; j < MATRIX_SIZE; j++) {
-            if (j != i) {
-                positions.push_back(j);
-            }
-        }
-
-        random_shuffle(positions.begin() + 1, positions.end(), gen);
+        std::vector<int> selected_positions;
+        double bb;
 
         int non_zero_count = MATRIX_SIZE - zero_elements_per_row;
-        std::vector<int> selected_positions(positions.begin(), positions.begin() + non_zero_count);
-        std::sort(selected_positions.begin(), selected_positions.end());
+
+        std::vector<double> values = generate_row(
+                    gen, selected_positions, bb, i, MATRIX_SIZE, non_zero_count,
+                    points, equation);
+
+        size_t idx = 0;
 
         for (int col : selected_positions) {
             csr_cols[current_pos] = col;
-            csr_values[current_pos] = static_cast<double>(gen()) / rand_max;
+            csr_values[current_pos] = values[idx];
             current_pos++;
+            idx++;
         }
 
         csr_rows[i + 1] = current_pos;
-    }
-
-    for (int i = 0; i < MATRIX_SIZE; i++) {
-        double sum = 0.0;
-        int diagonal_idx = -1;
-
-        for (int idx = csr_rows[i]; idx < csr_rows[i + 1]; idx++) {
-            if (csr_cols[idx] == i) {
-                diagonal_idx = idx;
-            }
-            else {
-                sum += std::abs(csr_values[idx]);
-            }
-        }
-
-        if (diagonal_idx != -1) {
-            if ((sum + 1e-7) >= std::abs(csr_values[diagonal_idx])) {
-                csr_values[diagonal_idx] = sum + 1.0;
-            }
-        }
-    }
-
-    for (int i = 0; i < MATRIX_SIZE; i++) {
-        b[i] = 0.0;
-        for (int idx = csr_rows[i]; idx < csr_rows[i + 1]; idx++) {
-            int col = csr_cols[idx];
-            double val = csr_values[idx];
-            b[i] += equation->calculate_term_value(val, points[col]);
-        }
+        b[i] = bb;
     }
 }
 

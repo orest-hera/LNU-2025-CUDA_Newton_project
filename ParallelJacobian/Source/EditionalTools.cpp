@@ -95,45 +95,23 @@ void tools::generate_sparse_initial_indexes_matrix_and_vector_b(
     }
 
     for (int i = 0; i < MATRIX_SIZE; i++) {
-        for (int j = 0; j < MATRIX_SIZE; j++) {
-            matrix[i * MATRIX_SIZE + j] = static_cast<double>(gen()) / rand_max;
+        std::vector<int> selected_positions;
+        double bb;
+
+        int non_zero_count = MATRIX_SIZE - zero_elements_per_row;
+
+        std::vector<double> values = generate_row(
+                    gen, selected_positions, bb, i, MATRIX_SIZE, non_zero_count,
+                    points, equation);
+
+        size_t idx = 0;
+
+        for (int col : selected_positions) {
+            matrix[i * MATRIX_SIZE + col] = values[idx];
+            idx++;
         }
 
-
-        if (zero_elements_per_row > 0) {
-            std::vector<int> positions(MATRIX_SIZE);
-            std::iota(positions.begin(), positions.end(), 0);
-            random_shuffle(positions.begin(), positions.end(), gen);
-
-            for (int k = 0; k < zero_elements_per_row; k++) {
-                int j = positions[k];
-                matrix[i * MATRIX_SIZE + j] = 0.0;
-            }
-        }
-    }
-
-    for (int i = 0; i < MATRIX_SIZE; i++) {
-		double sum = 0.0;
-		double diagonal_value = 0.0;
-        for (int j = 0; j < MATRIX_SIZE; j++) {
-            if (j != i) {
-                sum += matrix[i * MATRIX_SIZE + j];
-            }
-        }
-
-        diagonal_value = matrix[i * MATRIX_SIZE + i];
-        if ((sum + 1e-7) >= diagonal_value) {
-			matrix[i * MATRIX_SIZE + i] = sum - diagonal_value + 1.0;
-        }
-    }
-
-    for (int i = 0; i < MATRIX_SIZE; i++) {
-        b[i] = 0;
-        for (int j = 0; j < MATRIX_SIZE; j++) {
-            if (matrix[i * MATRIX_SIZE + j] != 0.0) {
-                b[i] += equation->calculate_term_value(matrix[i * MATRIX_SIZE + j], points[j]);
-            }
-        }
+        b[i] = bb;
     }
 }
 

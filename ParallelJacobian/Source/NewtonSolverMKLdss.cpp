@@ -7,43 +7,6 @@
 #include "mkl.h"
 
 
-int NewtonSolverMKLdss::count_non_zero_elements(double* matrix_A) {
-	int non_zero_count = 0;
-	for (int i = 0; i < data->MATRIX_SIZE * data->MATRIX_SIZE; i++) {
-		if (matrix_A[i] != 0) {
-			non_zero_count++;
-		}
-	}
-	return non_zero_count;
-}
-
-void NewtonSolverMKLdss::parse_to_csr(MKL_INT* csr_cols, MKL_INT* csr_rows, double* csr_values, double* matrix_A) {
-	int non_zero_count = 0;
-	csr_rows[0] = 0;
-	for (int i = 0; i < data->MATRIX_SIZE; ++i) {
-		for (int j = 0; j < data->MATRIX_SIZE; ++j) {
-			if (matrix_A[i * data->MATRIX_SIZE + j] != 0) {
-				csr_cols[non_zero_count] = j;
-				csr_values[non_zero_count] = matrix_A[i * data->MATRIX_SIZE + j];
-				non_zero_count++;
-
-				// sanity check
-				if (non_zero_count > data->non_zero_count) {
-					std::cout << "ERROR parse_to_scr nnz:" << non_zero_count
-						<< ", data nnz: " << data->non_zero_count << std::endl;
-					return;
-				}
-			}
-		}
-		csr_rows[i + 1] = non_zero_count;
-	}
-	// sanity check
-	if (non_zero_count != data->non_zero_count) {
-		std::cout << "ERROR parse_to_scr different nnz:" << non_zero_count
-			<< ", data nnz: " << data->non_zero_count << std::endl;
-	}
-}
-
 void NewtonSolverMKLdss::cpu_computeVec() {
     for (int i = 0; i < data->MATRIX_SIZE; ++i) {
         double sum = 0.0;
@@ -115,8 +78,6 @@ void NewtonSolverMKLdss::cpu_newton_solve() {
 
 	auto start_total = std::chrono::steady_clock::now();
 
-	
-	parse_to_csr(data->csr_cols_h, data->csr_rows_h, data->csr_values_h, data->indexes_h);
 	std::cout << "Non-zero count: " << data->non_zero_count << "\n";
 	do {
 		iterations_count++;

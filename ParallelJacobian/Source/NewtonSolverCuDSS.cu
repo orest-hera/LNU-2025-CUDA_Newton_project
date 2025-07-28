@@ -21,31 +21,6 @@ NewtonSolverCuDSS::NewtonSolverCuDSS(DataInitializerCuDSS* data,
 NewtonSolverCuDSS::~NewtonSolverCuDSS() {
 }
 
-int NewtonSolverCuDSS::count_non_zero_elements(double* matrix_A) {
-	int non_zero_count = 0;
-	for (int i = 0; i < data->MATRIX_SIZE * data->MATRIX_SIZE; i++) {
-		if (matrix_A[i] != 0) {
-			non_zero_count++;
-		}
-	}
-	return non_zero_count;
-}
-
-void NewtonSolverCuDSS::parse_to_csr(int* csr_cols, int* csr_rows, double* csr_values, double* matrix_A) {
-	int non_zero_count = 0;
-	csr_rows[0] = 0;
-	for (int i = 0; i < data->MATRIX_SIZE; ++i) {
-		for (int j = 0; j < data->MATRIX_SIZE; ++j) {
-			if (matrix_A[i * data->MATRIX_SIZE + j] != 0) {
-				csr_cols[non_zero_count] = j;
-				csr_values[non_zero_count] = matrix_A[i * data->MATRIX_SIZE + j];
-				non_zero_count++;
-			}
-		}
-		csr_rows[i + 1] = non_zero_count;
-	}
-}
-
 void NewtonSolverCuDSS::solve(double* matrix_A_h, double* vector_b_d, double* vector_x_h, double* vector_x_d) {
 	if (!data->analyzed) {
 		cudssExecute(data->handler, CUDSS_PHASE_ANALYSIS, data->solverConfig, data->solverData, data->A, data->x, data->b);
@@ -133,7 +108,6 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 
 	cudaMemcpy(data->points_d, data->points_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 
-	parse_to_csr(data->csr_cols_h, data->csr_rows_h, data->csr_values_h, data->indexes_h);
 	cudaMemcpy(data->csr_cols_d, data->csr_cols_h, data->non_zero_count * sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(data->csr_rows_d, data->csr_rows_h, (data->MATRIX_SIZE + 1) * sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(data->csr_values_d, data->csr_values_h, data->non_zero_count * sizeof(double), cudaMemcpyHostToDevice);

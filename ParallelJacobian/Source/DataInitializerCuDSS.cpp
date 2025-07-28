@@ -34,16 +34,6 @@ DataInitializerCuDSS::DataInitializerCuDSS(int MATRIX_SIZE, int zeros_elements_p
 
 }
 
-int DataInitializerCuDSS::count_non_zero_elements(double* matrix_A) {
-	int non_zero_count = 0;
-	for (int i = 0; i < MATRIX_SIZE * MATRIX_SIZE; i++) {
-		if (matrix_A[i] != 0) {
-			non_zero_count++;
-		}
-	}
-	return non_zero_count;
-}
-
 DataInitializerCuDSS::~DataInitializerCuDSS() {
 	// Free CSR memory
 	cudaFree(csr_values_d);

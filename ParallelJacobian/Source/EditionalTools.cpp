@@ -74,7 +74,6 @@ static std::vector<double> generate_row(
     return vals;
 }
 
-
 void tools::generate_sparse_initial_indexes_matrix_and_vector_b(
     double* matrix,
     double* b,
@@ -115,10 +114,11 @@ void tools::generate_sparse_initial_indexes_matrix_and_vector_b(
     }
 }
 
+template<typename T>
 void tools::generate_sparse_initial_indexes_matrix_and_vector_b(
     double* csr_values,
-    int* csr_rows,
-    int* csr_cols,
+    T* csr_rows,
+    T* csr_cols,
     double* b,
     double* points,
     int MATRIX_SIZE,
@@ -163,7 +163,27 @@ void tools::generate_sparse_initial_indexes_matrix_and_vector_b(
     }
 }
 
+template
+void tools::generate_sparse_initial_indexes_matrix_and_vector_b<int>(
+    double* csr_values,
+    int* csr_rows,
+    int* csr_cols,
+    double* b,
+    double* points,
+    int MATRIX_SIZE,
+    Equation* equation,
+    int zero_elements_per_row);
 
+template
+void tools::generate_sparse_initial_indexes_matrix_and_vector_b<long long>(
+    double* csr_values,
+    long long* csr_rows,
+    long long* csr_cols,
+    double* b,
+    double* points,
+    int MATRIX_SIZE,
+    Equation* equation,
+    int zero_elements_per_row);
 
 double tools::calculate_index_xn(double index, double x) {
 	return index * x;

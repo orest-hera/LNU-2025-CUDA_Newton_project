@@ -10,10 +10,12 @@ namespace tools {
 		int MATRIX_SIZE,
 		Equation* equation,
 		int zero_elements_per_row = 0);
+
+    template<typename T>
 	void generate_sparse_initial_indexes_matrix_and_vector_b(
 		double* csr_values,
-		int* csr_rows,
-		int* csr_cols,
+        T* csr_rows,
+        T* csr_cols,
 		double* b,
 		double* points,
 		int MATRIX_SIZE,

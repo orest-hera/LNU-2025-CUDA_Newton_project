@@ -1,5 +1,6 @@
 #include "EditionalTools.h"
 
+#include <algorithm>
 #include <iostream>
 #include <numeric>
 #include <random> 
@@ -133,7 +134,7 @@ void tools::generate_sparse_initial_indexes_matrix_and_vector_b(
             }
         }
 
-        std::shuffle(positions.begin() + 1, positions.end(), gen);
+        random_shuffle(positions.begin() + 1, positions.end(), gen);
 
         int non_zero_count = MATRIX_SIZE - zero_elements_per_row;
         std::vector<int> selected_positions(positions.begin(), positions.begin() + non_zero_count);

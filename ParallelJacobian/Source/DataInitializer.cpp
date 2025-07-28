@@ -53,7 +53,9 @@ DataInitializer::~DataInitializer() {
 	cudaFreeHost(delta_h);
 	cudaFreeHost(vector_b_h);
 #else
-    delete[] indexes_h;
+    if (indexes_h) {
+        delete[] indexes_h;
+    }
     delete[] points_h;
     delete[] vector_b_h;
 	delete[] points_check;

@@ -17,25 +17,6 @@ void random_shuffle(It first, It last, G& gen)
     }
 }
 
-void tools::generate_initial_indexes_matrix_and_vector_b(double* matrix, double* b, double* points, int MATRIX_SIZE, Equation* equation) {
-    std::mt19937 gen;
-    auto rand_max = gen.max();
-
-    for (int i = 0; i < MATRIX_SIZE; i++) {
-        points[i] = static_cast<double>(gen()) / rand_max;
-        for (int j = 0; j < MATRIX_SIZE; j++) {
-            matrix[i * MATRIX_SIZE + j] = static_cast<double>(gen()) / rand_max;
-        }
-    }
-
-    for (int i = 0; i < MATRIX_SIZE; i++) {
-        b[i] = 0;
-        for (int j = 0; j < MATRIX_SIZE; j++) {
-            b[i] += equation->calculate_term_value(matrix[i * MATRIX_SIZE + j], points[j]);
-        }
-    }
-}
-
 void tools::generate_sparse_initial_indexes_matrix_and_vector_b(
     double* matrix,
     double* b,

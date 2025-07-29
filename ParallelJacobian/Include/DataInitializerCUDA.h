@@ -1,4 +1,7 @@
 #pragma once
+
+#include "cublas_v2.h"
+
 #include "DataInitializer.h"
 
 class DataInitializerCUDA : public DataInitializer

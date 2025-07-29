@@ -2,19 +2,12 @@
 #include <memory>
 #include <vector>
 
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
-
-#include "DataInitializerCPU.h"
-#include "DataInitializerCuDSS.h"
-#include "DataInitializerMKLdss.h"
-#include "DataInitializerMKLlapack.h"
+#include "FileOperations.h"
 #include "NewtonSolverCPU.h"
 #include "NewtonSolverCUDA.h"
 #include "NewtonSolverCuDSS.h"
 #include "NewtonSolverMKLdss.h"
 #include "NewtonSolverMKLlapack.h"
-#include "FileOperations.h"
 #include "config.h"
 #include "report.h"
 #include "settings.h"

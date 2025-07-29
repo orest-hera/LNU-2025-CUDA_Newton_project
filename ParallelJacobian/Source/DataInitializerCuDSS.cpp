@@ -1,6 +1,8 @@
 #include "DataInitializerCuDSS.h"
+
 #include <iostream>
-#include "../Include/EditionalTools.h"
+
+#include "EditionalTools.h"
 
 DataInitializerCuDSS::DataInitializerCuDSS(int MATRIX_SIZE, int zeros_elements_per_row, int file_name, int power)
 	: DataInitializer(MATRIX_SIZE, zeros_elements_per_row, file_name, power, true) {

@@ -1,10 +1,9 @@
 #pragma once
-#include "DataInitializerCPU.h"
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
-#include "config.h"
+
 #include <chrono>
 
+#include "DataInitializerCPU.h"
+#include "config.h"
 #include "settings.h"
 
 struct NewtonSolverCPU {

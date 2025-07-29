@@ -1,18 +1,12 @@
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
-#include "iostream"
-#include "math.h"
-#include "vector" 
-#include "DataInitializerCPU.h"
-#include "memory"
-#include "config.h"
-#include "NewtonSolverCuDSS.h"
-#include "FileOperations.h"
-#include <cstdlib>
-#include "NewtonSolverCUDA.h"
-#include <DataInitializerCuDSS.h>
-#include <NewtonSolverCPU.h>
+#include <iostream>
+#include <memory>
+#include <vector>
 
+#include "FileOperations.h"
+#include "NewtonSolverCPU.h"
+#include "NewtonSolverCUDA.h"
+#include "NewtonSolverCuDSS.h"
+#include "config.h"
 #include "settings.h"
 #include "system-build-info.h"
 

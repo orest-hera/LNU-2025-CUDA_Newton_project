@@ -1,10 +1,11 @@
-﻿#include "math.h"
+﻿#include "NewtonSolverCPU.h"
+
+#include <cmath>
 #include <iostream>
 #include <memory>
 
-#include "FileOperations.h"
-#include "NewtonSolverCPU.h"
 #include "EditionalTools.h"
+#include "FileOperations.h"
 
 NewtonSolverCPU::NewtonSolverCPU(DataInitializerCPU* dataInitializer,
         const Settings::SettingsData& settings)

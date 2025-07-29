@@ -1,8 +1,9 @@
 #pragma once
+
+#include <vector>
+
 #include "Equation.h"
-#include "vector"
 #include "config.h"
-#include "cublas_v2.h"
 
 #define BLOCK_SIZE 64
 #define EQURENCY 1e-6

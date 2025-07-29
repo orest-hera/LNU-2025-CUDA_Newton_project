@@ -1,7 +1,8 @@
-#include <string>
-#include <fstream>
-#include <vector>
 #pragma once
+
+#include <fstream>
+#include <string>
+#include <vector>
 
 class FileOperations {
 private:

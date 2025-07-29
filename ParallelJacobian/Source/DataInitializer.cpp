@@ -1,8 +1,8 @@
 #include "DataInitializer.h"
-#include "cuda_runtime.h"
+
+#include <iostream>
+
 #include "EditionalTools.h"
-#include "stdlib.h"
-#include "iostream"
 
 DataInitializer::DataInitializer(int MATRIX_SIZE, int zeros_elements_per_row,
                                  int file_name, int power, bool is_csr) {

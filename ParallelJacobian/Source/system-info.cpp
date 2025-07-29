@@ -7,10 +7,13 @@
 #include <sstream>
 #include <stdexcept>
 
+#ifdef CFG_SOLVE_CUDA
 #include <cuda_runtime.h>
+#endif
 
 namespace {
 
+#ifdef CFG_SOLVE_CUDA
 void checkCudaErrors(cudaError_t err)
 {
     if (err != cudaSuccess) {
@@ -18,6 +21,7 @@ void checkCudaErrors(cudaError_t err)
             cudaGetErrorName(err) + ", " + 	cudaGetErrorString(err));
     }
 }
+#endif
 
 }
 
@@ -55,9 +59,12 @@ void SystemInfo::dump(std::ostream& stream) const
     stream << "Launch time: " << timestamp_ << std::endl;
     stream << "Command: " << cmd_ << std::endl;
 
+#ifdef CFG_SOLVE_CUDA
     dumpDeviceProps(stream);
+#endif
 }
 
+#ifdef CFG_SOLVE_CUDA
 void SystemInfo::dumpDeviceProps(std::ostream& stream) const
 {
     int devId, devCount;
@@ -83,3 +90,4 @@ void SystemInfo::dumpDeviceProps(std::ostream& stream) const
     stream << "MultiProcessorCount: " << props.multiProcessorCount << std::endl;
     stream << "GPU Cock Rate: " << props.clockRate << " kHz" << std::endl;
 }
+#endif

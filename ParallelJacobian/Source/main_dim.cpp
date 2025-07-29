@@ -4,10 +4,14 @@
 
 #include "FileOperations.h"
 #include "NewtonSolverCPU.h"
+#ifdef CFG_SOLVE_CUDA
 #include "NewtonSolverCUDA.h"
 #include "NewtonSolverCuDSS.h"
+#endif
+#ifdef CFG_SOLVE_MKL
 #include "NewtonSolverMKLdss.h"
 #include "NewtonSolverMKLlapack.h"
+#endif
 #include "config.h"
 #include "report.h"
 #include "settings.h"
@@ -67,6 +71,7 @@ int main(int argc, char* argv[]) {
             row[0] = data->total_elapsed_time;
         }
 
+#ifdef CFG_SOLVE_CUDA
         //
         // cuBLAS
         //
@@ -88,7 +93,8 @@ int main(int argc, char* argv[]) {
             cuDssSolver->gpu_newton_solver_cudss();
             row[2] = data3->total_elapsed_time;;
         }
-
+#endif
+#ifdef CFG_SOLVE_MKL
         //
         // MKL Lapack
         //
@@ -110,6 +116,7 @@ int main(int argc, char* argv[]) {
             mklDssSolver->cpu_newton_solve();
             row[4] = data->total_elapsed_time;;
         }
+#endif
 
         file_op->append_file_data(row, size);
     }

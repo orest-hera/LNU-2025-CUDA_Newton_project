@@ -31,4 +31,11 @@ void SystemBuildInfo::dump(std::ostream& s)
     if (buildConfig != cmakeBuildType) {
         s << "Cmake build type: " << cmakeBuildType << std::endl;
     }
+
+#ifndef CFG_SOLVE_CUDA
+    s << "CUDA build disabled" << std::endl;
+#endif
+#ifndef CFG_SOLVE_MKL
+    s << "MKL build disabled" << std::endl;
+#endif
 }

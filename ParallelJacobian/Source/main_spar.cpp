@@ -4,8 +4,10 @@
 
 #include "FileOperations.h"
 #include "NewtonSolverCPU.h"
+#ifdef CFG_SOLVE_CUDA
 #include "NewtonSolverCUDA.h"
 #include "NewtonSolverCuDSS.h"
+#endif
 #include "config.h"
 #include "settings.h"
 #include "system-build-info.h"
@@ -45,7 +47,7 @@ int main(int argc, char* argv[]) {
     std::string header = "CPU,GPU,cuDSS,zeros_per_row";
     file_op->create_file("total_statistic.csv", 3);
     file_op->append_file_headers(header);
-    std::vector<double> row(3);
+    std::vector<double> row{0,0,0};
 
     for (int size = zeros_per_row_min; size <= zeros_per_row_max; size += stride) {
 
@@ -58,6 +60,8 @@ int main(int argc, char* argv[]) {
             newton_solver->cpu_newton_solve();
             row[0] = data->total_elapsed_time;
         }
+
+#ifdef CFG_SOLVE_CUDA
         ////
         //// GPU
         ////
@@ -76,6 +80,8 @@ int main(int argc, char* argv[]) {
             cuDssSolver->gpu_newton_solver_cudss();
             row[2] = data3->total_elapsed_time;
         }
+#endif
+
         file_op->append_file_data(row, size);
     }
     return 0;

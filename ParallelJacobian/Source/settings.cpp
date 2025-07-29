@@ -7,10 +7,14 @@ Settings::Settings()
 {
     pmap_ = std::map<std::string, Parser>{
         {"--cpu", { parseBool, &settings.is_cpu }},
+#ifdef CFG_SOLVE_CUDA
         {"--cublas", { parseBool, &settings.is_cublas }},
         {"--cudss", { parseBool, &settings.is_cudss }},
+#endif
+#ifdef CFG_SOLVE_MKL
         {"--mkl-dss", { parseBool, &settings.is_mkl_dss }},
         {"--mkl-lapack", { parseBool, &settings.is_mkl_lapack }},
+#endif
         {"--max", { parseUnsigned, &settings.max }},
         {"--min", { parseUnsigned, &settings.min }},
         {"--power", { parseUnsigned, &settings.power }},

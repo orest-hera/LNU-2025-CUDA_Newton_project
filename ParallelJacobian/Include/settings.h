@@ -16,6 +16,8 @@ public:
         unsigned min{1000};
         unsigned power{3};
         unsigned stride{100};
+        unsigned size{0};
+        unsigned nnz{0};
         bool is_cpu{false};
         bool is_cublas{false};
         bool is_cudss{false};

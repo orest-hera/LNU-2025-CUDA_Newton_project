@@ -17,6 +17,8 @@ Settings::Settings()
 #endif
         {"--max", { parseUnsigned, &settings.max }},
         {"--min", { parseUnsigned, &settings.min }},
+        {"--size", { parseUnsigned, &settings.size }},
+        {"--nnz", { parseUnsigned, &settings.nnz }},
         {"--power", { parseUnsigned, &settings.power }},
         {"--stride", { parseUnsigned, &settings.stride }},
         {"--redirect-out", { parseBool, &settings.redirect_out }},

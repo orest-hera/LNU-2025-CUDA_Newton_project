@@ -1,6 +1,7 @@
 #include "EditionalTools.h"
 
 #include <algorithm>
+#include <cstring>
 #include <iostream>
 #include <numeric>
 #include <random> 
@@ -88,6 +89,8 @@ void tools::generate_sparse_initial_indexes_matrix_and_vector_b(
 
     std::mt19937 gen;
     auto rand_max = gen.max();
+
+    memset(matrix, 0, sizeof(double) * MATRIX_SIZE * MATRIX_SIZE);
 
     for (int i = 0; i < MATRIX_SIZE; i++) {
         points[i] = static_cast<double>(gen()) / rand_max;

@@ -17,7 +17,6 @@
 #include "settings.h"
 #include "system-build-info.h"
 #include "system-info.h"
-#include "version.h"
 
 int main(int argc, char* argv[]) {
     SystemBuildInfo::dump(std::cout);

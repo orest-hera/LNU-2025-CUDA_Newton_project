@@ -8,65 +8,87 @@
 #include "NewtonSolverCUDA.h"
 #include "NewtonSolverCuDSS.h"
 #endif
+#ifdef CFG_SOLVE_MKL
+#include "NewtonSolverMKLdss.h"
+#include "NewtonSolverMKLlapack.h"
+#endif
 #include "config.h"
+#include "report.h"
 #include "settings.h"
 #include "system-build-info.h"
+#include "system-info.h"
 
 int main(int argc, char* argv[]) {
     SystemBuildInfo::dump(std::cout);
     std::cout << std::endl;
 
     Settings s;
+    if (!s.parse(argc, argv))
+        return 1;
 
-    int matrix_size = 1000;
+    SystemInfo sinfo(argc, argv);
 
-    int zeros_per_row_max = 995;
-    int zeros_per_row_min = 995;
-    int stride = 100;
-    int power = 3;
-    for (int i = 0; i < argc; i++) {
-        std::string arg = argv[i];
+    if (s.settings.report_subdir) {
+        std::string path = s.settings.path + "/" + sinfo.getTimeStamp();
+        if (!Report::createReportDir(path))
+            return 2;
 
-        if (arg.find("--power=") == 0) {
-            power = std::stod(arg.substr(8));
-        }
+        s.settings.path = path;
     }
-    if (argc > 1) {
-        zeros_per_row_max = std::atoi(argv[1]);
 
-        if (argc > 2) {
-            zeros_per_row_min = std::atoi(argv[2]);
+    Report::RedirectOut rdout;
+    if (s.settings.redirect_out) {
+        rdout.redirect(s.settings.path);
 
-            if (argc > 3) {
-                stride = std::atoi(argv[3]);
-            }
-        }
+        SystemBuildInfo::dump(std::cout);
+        std::cout << std::endl;
+    }
+
+    sinfo.dump(std::cout);
+
+    unsigned matrix_size = s.settings.size != 0 ? s.settings.size : 1000;
+    unsigned zeros_per_row_max = 0;
+    unsigned zeros_per_row_min = 0;
+    unsigned stride = s.settings.stride;
+    unsigned power = s.settings.power;
+
+    if (s.settings.nnz != 0 && s.settings.nnz < matrix_size) {
+        // use only one step
+        zeros_per_row_max = matrix_size - s.settings.nnz;
+        zeros_per_row_min = matrix_size - s.settings.nnz;
+    } else {
+        if (s.settings.min != 0 && s.settings.min < matrix_size)
+            zeros_per_row_max = matrix_size - s.settings.min;
+        if (s.settings.max != 0 && s.settings.max < matrix_size)
+            zeros_per_row_min = matrix_size - s.settings.max;
     }
 
     std::unique_ptr<FileOperations> file_op = std::make_unique<FileOperations>(s.settings.path);
-    std::string header = "CPU,GPU,cuDSS,zeros_per_row";
-    file_op->create_file("total_statistic.csv", 3);
+    std::string header = "CPU,GPU,cuDSS,MKL_Lapack,MKL_DSS,matrix_size";
+    file_op->create_file("total_statistic.csv", 5);
     file_op->append_file_headers(header);
-    std::vector<double> row{0,0,0};
+    std::vector<double> row{0,0,0,0,0};
 
-    for (int size = zeros_per_row_min; size <= zeros_per_row_max; size += stride) {
+    for (unsigned zeros = zeros_per_row_min; zeros <= zeros_per_row_max; zeros += stride) {
 
         //
-        // CPY
+        // CPU
         //
+        if (s.settings.is_cpu)
         {
-            std::unique_ptr<DataInitializerCPU> data = std::make_unique<DataInitializerCPU>(matrix_size, size, size, power);
+            auto data = std::make_unique<DataInitializerCPU>(matrix_size, zeros, zeros, power);
             auto newton_solver = std::make_unique<NewtonSolverCPU>(data.get(), s.settings);
             newton_solver->cpu_newton_solve();
             row[0] = data->total_elapsed_time;
         }
 
 #ifdef CFG_SOLVE_CUDA
-        ////
-        //// GPU
-        ////
+        //
+        // cuBLAS
+        //
+        if (s.settings.is_cublas)
         {
-            std::unique_ptr<DataInitializerCUDA> data2 = std::make_unique<DataInitializerCUDA>(matrix_size, size, size, power);
+            auto data2 = std::make_unique<DataInitializerCUDA>(matrix_size, zeros, zeros, power);
             auto newton_solver2 = std::make_unique<NewtonSolverCUDA>(data2.get(), s.settings);
             newton_solver2->gpu_newton_solve();
             row[1] = data2->total_elapsed_time;
@@ -74,15 +96,39 @@ int main(int argc, char* argv[]) {
         //
         // cuDSS
         //
+        if (s.settings.is_cudss)
         {
-            std::unique_ptr<DataInitializerCuDSS> data3 = std::make_unique<DataInitializerCuDSS>(matrix_size, size, size, power);
+            auto data3 = std::make_unique<DataInitializerCuDSS>(matrix_size, zeros, zeros, power);
             auto cuDssSolver = std::make_unique<NewtonSolverCuDSS>(data3.get(), s.settings);
             cuDssSolver->gpu_newton_solver_cudss();
             row[2] = data3->total_elapsed_time;
         }
 #endif
+#ifdef CFG_SOLVE_MKL
+        //
+        // MKL Lapack
+        //
+        if (s.settings.is_mkl_lapack)
+        {
+            auto data = std::make_unique<DataInitializerMKLlapack>(matrix_size, zeros, zeros, power);
+            auto mklLapackSolver = std::make_unique<NewtonSolverMKLlapack>(data.get(), s.settings);
+            mklLapackSolver->cpu_newton_solve();
+            row[3] = data->total_elapsed_time;;
+        }
 
-        file_op->append_file_data(row, size);
+        //
+        // MKL DSS
+        //
+        if (s.settings.is_mkl_dss)
+        {
+            auto data = std::make_unique<DataInitializerMKLdss>(matrix_size, zeros, zeros, power);
+            auto mklDssSolver = std::make_unique<NewtonSolverMKLdss>(data.get(), s.settings);
+            mklDssSolver->cpu_newton_solve();
+            row[4] = data->total_elapsed_time;;
+        }
+#endif
+
+        file_op->append_file_data(row, zeros);
     }
     return 0;
 }

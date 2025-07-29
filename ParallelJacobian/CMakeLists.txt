@@ -142,6 +142,14 @@ if(BUILD_CUDA)
         CUDA_SEPARABLE_COMPILATION ON # Generally good practice for large CUDA projects
         CUDA_ARCHITECTURES "${CUDA_ARCHITECTURES}"
         )
+
+    if(WIN32)
+        # build main files as CUDA for proper linkage by MSVC
+        set_source_files_properties("${CMAKE_SOURCE_DIR}/Source/main_dim.cpp"
+            PROPERTIES LANGUAGE CUDA)
+        set_source_files_properties("${CMAKE_SOURCE_DIR}/Source/main_spar.cpp"
+            PROPERTIES LANGUAGE CUDA)
+    endif()
 endif()
 
 if(BUILD_MKL)

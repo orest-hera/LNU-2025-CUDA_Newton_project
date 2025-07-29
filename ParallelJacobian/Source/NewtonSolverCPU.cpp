@@ -1,4 +1,4 @@
-﻿#include "NewtonSolverCPU.h"
+#include "NewtonSolverCPU.h"
 
 #include <cmath>
 #include <iostream>

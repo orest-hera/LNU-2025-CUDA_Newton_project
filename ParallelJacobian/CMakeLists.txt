@@ -63,8 +63,8 @@ file(GLOB COMMON_SOURCE_FILES
     "${CMAKE_SOURCE_DIR}/Source/*.cu"
 )
 list(REMOVE_ITEM COMMON_SOURCE_FILES
-     "${CMAKE_SOURCE_DIR}/Source/kernel.cu"
-     "${CMAKE_SOURCE_DIR}/Source/kernel2.cu"
+     "${CMAKE_SOURCE_DIR}/Source/main_dim.cpp"
+     "${CMAKE_SOURCE_DIR}/Source/main_spar.cpp"
 )
 
 add_compile_options(
@@ -74,11 +74,11 @@ add_compile_options(
 
 add_library(my_common_lib STATIC ${COMMON_SOURCE_FILES})
 
-add_executable(ParallelJacobian_DimensionStudy "${CMAKE_SOURCE_DIR}/Source/kernel.cu")
+add_executable(ParallelJacobian_DimensionStudy "${CMAKE_SOURCE_DIR}/Source/main_dim.cpp")
 target_link_libraries(ParallelJacobian_DimensionStudy PRIVATE my_common_lib cudss cublas MKL::MKL)
 target_include_directories(ParallelJacobian_DimensionStudy PRIVATE $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
 
-add_executable(ParallelJacobian_SparsityStudy "${CMAKE_SOURCE_DIR}/Source/kernel2.cu")
+add_executable(ParallelJacobian_SparsityStudy "${CMAKE_SOURCE_DIR}/Source/main_spar.cpp")
 target_link_libraries(ParallelJacobian_SparsityStudy PRIVATE my_common_lib cudss cublas MKL::MKL)
 target_include_directories(ParallelJacobian_SparsityStudy PRIVATE $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
 

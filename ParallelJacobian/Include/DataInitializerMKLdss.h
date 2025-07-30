@@ -22,6 +22,7 @@ public:
 
     _MKL_DSS_HANDLE_t handle;
 
-    DataInitializerMKLdss(int MATRIX_SIZE, int zeros_elements_per_row, int file_name, int power);
+    DataInitializerMKLdss(int MATRIX_SIZE, int zeros_elements_per_row,
+                          int file_name, const Settings::SettingsData& s, int power);
     ~DataInitializerMKLdss();
 };

@@ -26,6 +26,7 @@ int main(int argc, char* argv[]) {
     if (!s.parse(argc, argv))
         return 1;
 
+    Settings::SettingsData& sd = s.settings;
     SystemInfo sinfo(argc, argv);
 
     if (s.settings.report_subdir) {
@@ -76,7 +77,8 @@ int main(int argc, char* argv[]) {
         //
         if (s.settings.is_cpu)
         {
-            auto data = std::make_unique<DataInitializerCPU>(matrix_size, zeros, zeros, power);
+            auto data = std::make_unique<DataInitializerCPU>(
+                        matrix_size, zeros, zeros, sd, power);
             auto newton_solver = std::make_unique<NewtonSolverCPU>(data.get(), s.settings);
             newton_solver->cpu_newton_solve();
             row[0] = data->total_elapsed_time;
@@ -88,7 +90,8 @@ int main(int argc, char* argv[]) {
         //
         if (s.settings.is_cublas)
         {
-            auto data2 = std::make_unique<DataInitializerCUDA>(matrix_size, zeros, zeros, power);
+            auto data2 = std::make_unique<DataInitializerCUDA>(
+                        matrix_size, zeros, zeros, sd, power);
             auto newton_solver2 = std::make_unique<NewtonSolverCUDA>(data2.get(), s.settings);
             newton_solver2->gpu_newton_solve();
             row[1] = data2->total_elapsed_time;
@@ -98,7 +101,8 @@ int main(int argc, char* argv[]) {
         //
         if (s.settings.is_cudss)
         {
-            auto data3 = std::make_unique<DataInitializerCuDSS>(matrix_size, zeros, zeros, power);
+            auto data3 = std::make_unique<DataInitializerCuDSS>(
+                        matrix_size, zeros, zeros, sd, power);
             auto cuDssSolver = std::make_unique<NewtonSolverCuDSS>(data3.get(), s.settings);
             cuDssSolver->gpu_newton_solver_cudss();
             row[2] = data3->total_elapsed_time;
@@ -110,7 +114,8 @@ int main(int argc, char* argv[]) {
         //
         if (s.settings.is_mkl_lapack)
         {
-            auto data = std::make_unique<DataInitializerMKLlapack>(matrix_size, zeros, zeros, power);
+            auto data = std::make_unique<DataInitializerMKLlapack>(
+                        matrix_size, zeros, zeros, sd, power);
             auto mklLapackSolver = std::make_unique<NewtonSolverMKLlapack>(data.get(), s.settings);
             mklLapackSolver->cpu_newton_solve();
             row[3] = data->total_elapsed_time;;
@@ -121,7 +126,8 @@ int main(int argc, char* argv[]) {
         //
         if (s.settings.is_mkl_dss)
         {
-            auto data = std::make_unique<DataInitializerMKLdss>(matrix_size, zeros, zeros, power);
+            auto data = std::make_unique<DataInitializerMKLdss>(
+                        matrix_size, zeros, zeros, sd, power);
             auto mklDssSolver = std::make_unique<NewtonSolverMKLdss>(data.get(), s.settings);
             mklDssSolver->cpu_newton_solve();
             row[4] = data->total_elapsed_time;;

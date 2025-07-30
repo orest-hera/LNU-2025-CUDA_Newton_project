@@ -19,6 +19,7 @@ Settings::Settings()
         {"--min", { parseUnsigned, &settings.min }},
         {"--size", { parseUnsigned, &settings.size }},
         {"--nnz", { parseUnsigned, &settings.nnz }},
+        {"--seed", { parseUnsigned, &settings.seed }},
         {"--power", { parseUnsigned, &settings.power }},
         {"--stride", { parseUnsigned, &settings.stride }},
         {"--redirect-out", { parseBool, &settings.redirect_out }},

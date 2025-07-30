@@ -5,8 +5,10 @@
 #include "EditionalTools.h"
 
 DataInitializerMKLdss::DataInitializerMKLdss(
-		int MATRIX_SIZE, int zeros_elements_per_row, int file_name, int power)
-	: DataInitializer(MATRIX_SIZE, zeros_elements_per_row, file_name, power, true) {
+		int MATRIX_SIZE, int zeros_elements_per_row, int file_name,
+		const Settings::SettingsData& s, int power)
+	: DataInitializer(MATRIX_SIZE, zeros_elements_per_row, file_name, s, power,
+			true) {
 	// Allocate memory for CSR representation
 	matrix_size = MATRIX_SIZE;
 	non_zero_count = MATRIX_SIZE * (MATRIX_SIZE - zeros_elements_per_row);

@@ -5,7 +5,8 @@
 #include "EditionalTools.h"
 
 DataInitializer::DataInitializer(int MATRIX_SIZE, int zeros_elements_per_row,
-                                 int file_name, int power, bool is_csr) {
+		int file_name, const Settings::SettingsData& s,
+		int power, bool is_csr) {
 	this->equation = new Equation(power);
 	this->MATRIX_SIZE = MATRIX_SIZE;
 	this->file_name = file_name;

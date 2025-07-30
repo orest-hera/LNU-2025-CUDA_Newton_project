@@ -18,6 +18,7 @@ public:
         unsigned stride{100};
         unsigned size{0};
         unsigned nnz{0};
+        unsigned seed{0};
         bool is_cpu{false};
         bool is_cublas{false};
         bool is_cudss{false};

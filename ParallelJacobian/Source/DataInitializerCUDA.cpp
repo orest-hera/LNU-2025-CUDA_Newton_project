@@ -1,6 +1,9 @@
 #include "DataInitializerCUDA.h"
 
-DataInitializerCUDA::DataInitializerCUDA(int MATRIX_SIZE, int zeros_elements_per_row, int file_name, int power = 1) : DataInitializer(MATRIX_SIZE, zeros_elements_per_row, file_name, power) {
+DataInitializerCUDA::DataInitializerCUDA(
+		int MATRIX_SIZE, int zeros_elements_per_row, int file_name,
+		const Settings::SettingsData& s, int power = 1)
+	: DataInitializer(MATRIX_SIZE, zeros_elements_per_row, file_name, s, power) {
 	cublasCreate_v2(&cublasContextHandler);
 
 	int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;

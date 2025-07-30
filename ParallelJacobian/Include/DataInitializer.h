@@ -4,6 +4,7 @@
 
 #include "Equation.h"
 #include "config.h"
+#include "settings.h"
 
 #define BLOCK_SIZE 64
 #define EQURENCY 1e-6
@@ -33,6 +34,7 @@ public:
 	void initialize_indexes_matrix_and_b(bool is_csr = false);
 
 	DataInitializer(int MATRIX_SIZE, int zeros_elements_per_row,
-			int file_name, int power = 1, bool is_csr = false);
+			int file_name, const Settings::SettingsData& s,
+			int power = 1, bool is_csr = false);
 	~DataInitializer();
 };

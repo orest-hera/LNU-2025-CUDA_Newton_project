@@ -36,6 +36,7 @@ public:
 	cudssMatrixViewType_t mvtype = CUDSS_MVIEW_FULL;
 	cudssIndexBase_t base = CUDSS_BASE_ZERO;
 
-	DataInitializerCuDSS(int MATRIX_SIZE, int zeros_elements_per_row, int file_name, int power);
+	DataInitializerCuDSS(int MATRIX_SIZE, int zeros_elements_per_row,
+			int file_name, const Settings::SettingsData& s, int power);
 	~DataInitializerCuDSS();
 };

@@ -40,7 +40,7 @@ DataInitializer::DataInitializer(int MATRIX_SIZE, int zeros_elements_per_row,
 	total_elapsed_time = 0.0;
 #endif
 
-    initialize_indexes_matrix_and_b(is_csr);
+    initialize_indexes_matrix_and_b(s, is_csr);
 }
 
 DataInitializer::~DataInitializer() {
@@ -65,7 +65,8 @@ DataInitializer::~DataInitializer() {
     delete equation;
 }
 
-void DataInitializer::initialize_indexes_matrix_and_b(bool is_csr) {
+void DataInitializer::initialize_indexes_matrix_and_b(
+        const Settings::SettingsData& s, bool is_csr) {
     for (int i = 0; i < MATRIX_SIZE; i++) {
         points_h[i] = 10;
     }
@@ -73,6 +74,6 @@ void DataInitializer::initialize_indexes_matrix_and_b(bool is_csr) {
     if (!is_csr) {
         tools::generate_sparse_initial_indexes_matrix_and_vector_b(
                     indexes_h, vector_b_h, points_check, MATRIX_SIZE, equation,
-                    zeros_elements_per_row);
+                    zeros_elements_per_row, s);
     }
 }

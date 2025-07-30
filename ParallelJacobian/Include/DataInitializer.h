@@ -31,7 +31,8 @@ public:
 	double total_elapsed_time;
 #endif
 
-	void initialize_indexes_matrix_and_b(bool is_csr = false);
+	void initialize_indexes_matrix_and_b(const Settings::SettingsData& s,
+			bool is_csr = false);
 
 	DataInitializer(int MATRIX_SIZE, int zeros_elements_per_row,
 			int file_name, const Settings::SettingsData& s,

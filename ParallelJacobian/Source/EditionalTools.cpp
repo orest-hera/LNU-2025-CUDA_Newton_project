@@ -81,13 +81,14 @@ void tools::generate_sparse_initial_indexes_matrix_and_vector_b(
     double* points,
     int MATRIX_SIZE,
     Equation* equation,
-    int zero_elements_per_row)
+    int zero_elements_per_row,
+    const Settings::SettingsData& s)
 {
     if (zero_elements_per_row < 0 || zero_elements_per_row >= MATRIX_SIZE) {
         zero_elements_per_row = 0;
     }
 
-    std::mt19937 gen;
+    std::mt19937 gen(s.seed);
     auto rand_max = gen.max();
 
     memset(matrix, 0, sizeof(double) * MATRIX_SIZE * MATRIX_SIZE);
@@ -126,13 +127,14 @@ void tools::generate_sparse_initial_indexes_matrix_and_vector_b(
     double* points,
     int MATRIX_SIZE,
     Equation* equation,
-    int zero_elements_per_row)
+    int zero_elements_per_row,
+    const Settings::SettingsData& s)
 {
     if (zero_elements_per_row < 0 || zero_elements_per_row >= MATRIX_SIZE) {
         zero_elements_per_row = 0;
     }
 
-    std::mt19937 gen;
+    std::mt19937 gen(s.seed);
     auto rand_max = gen.max();
 
     for (int i = 0; i < MATRIX_SIZE; i++) {
@@ -175,7 +177,8 @@ void tools::generate_sparse_initial_indexes_matrix_and_vector_b<int>(
     double* points,
     int MATRIX_SIZE,
     Equation* equation,
-    int zero_elements_per_row);
+    int zero_elements_per_row,
+    const Settings::SettingsData& s);
 
 template
 void tools::generate_sparse_initial_indexes_matrix_and_vector_b<long long>(
@@ -186,7 +189,8 @@ void tools::generate_sparse_initial_indexes_matrix_and_vector_b<long long>(
     double* points,
     int MATRIX_SIZE,
     Equation* equation,
-    int zero_elements_per_row);
+    int zero_elements_per_row,
+    const Settings::SettingsData& s);
 
 double tools::calculate_index_xn(double index, double x) {
 	return index * x;

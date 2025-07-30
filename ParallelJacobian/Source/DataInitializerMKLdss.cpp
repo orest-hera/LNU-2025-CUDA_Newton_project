@@ -23,6 +23,7 @@ DataInitializerMKLdss::DataInitializerMKLdss(
     tools::generate_sparse_initial_indexes_matrix_and_vector_b(
                 csr_values_h, csr_rows_h, csr_cols_h, vector_b_h, points_check,
                 MATRIX_SIZE, equation, zeros_elements_per_row, s);
+    non_zero_count = csr_rows_h[MATRIX_SIZE];
 
     dss_create(handle, opt);
 }

@@ -21,6 +21,7 @@ Settings::Settings()
         {"--nnz", { parseUnsigned, &settings.nnz }},
         {"--seed", { parseUnsigned, &settings.seed }},
         {"--power", { parseUnsigned, &settings.power }},
+        {"--rand-sparse-pos", { parseBool, &settings.rand_sparse_pos }},
         {"--stride", { parseUnsigned, &settings.stride }},
         {"--redirect-out", { parseBool, &settings.redirect_out }},
         {"--report-subdir", { parseBool, &settings.report_subdir }},

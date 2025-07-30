@@ -28,6 +28,7 @@ DataInitializerCuDSS::DataInitializerCuDSS(
 			csr_values_h, csr_rows_h, csr_cols_h, vector_b_h,
 			points_check, MATRIX_SIZE, equation,
 			zeros_elements_per_row, s);
+	non_zero_count = csr_rows_h[MATRIX_SIZE];
 
 	cudssCreate(&handler);
 

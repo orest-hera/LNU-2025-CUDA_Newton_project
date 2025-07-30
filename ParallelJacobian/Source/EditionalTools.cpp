@@ -18,14 +18,30 @@ void random_shuffle(It first, It last, G& gen)
     }
 }
 
-static std::vector<double> generate_row(
-        std::mt19937& gen, std::vector<int>& pos, double &b, int row, int size,
-        int nnz, const double *points, const Equation* eqn)
+static std::vector<int> generate_k_diagonal_pos(int row, int nnz, int size)
 {
-    auto rand_max = gen.max();
-
     std::vector<int> p;
-    p.reserve(size);
+    p.reserve(nnz);
+
+    int first = row - nnz / 2;
+    int last = first + nnz;
+    if (first < 0)
+        first = 0;
+    if (last > size)
+        last = size;
+
+    for (int i = first; i < last; ++i) {
+        p.push_back(i);
+    }
+
+    return p;
+}
+
+static std::vector<int> generate_random_pos(
+        int row, int nnz, int size, std::mt19937& gen)
+{
+    std::vector<int> p;
+    p.reserve(nnz);
 
     p.push_back(row);
 
@@ -36,10 +52,31 @@ static std::vector<double> generate_row(
     }
 
     random_shuffle(p.begin() + 1, p.end(), gen);
+    p.resize(nnz);
+    std::sort(p.begin(), p.end());
 
-    pos.clear();
-    std::copy(p.begin(), p.begin() + nnz, std::back_inserter(pos));
-    std::sort(pos.begin(), pos.end());
+    return p;
+}
+
+static std::vector<int> generate_pos(
+        int row, int nnz, int size, std::mt19937& gen,
+        const Settings::SettingsData& s)
+{
+    if (s.rand_sparse_pos)
+        return generate_random_pos(row, nnz, size, gen);
+
+    return generate_k_diagonal_pos(row, nnz, size);
+}
+
+static std::vector<double> generate_row(
+        std::mt19937& gen, std::vector<int>& pos, double &b, int row, int size,
+        int nnz, const double *points, const Equation* eqn,
+        const Settings::SettingsData& s)
+{
+    auto rand_max = gen.max();
+
+    pos = generate_pos(row, nnz, size, gen, s);
+    nnz = pos.size();
 
     std::vector<double> vals;
     vals.reserve(nnz);
@@ -105,7 +142,7 @@ void tools::generate_sparse_initial_indexes_matrix_and_vector_b(
 
         std::vector<double> values = generate_row(
                     gen, selected_positions, bb, i, MATRIX_SIZE, non_zero_count,
-                    points, equation);
+                    points, equation, s);
 
         size_t idx = 0;
 
@@ -152,7 +189,7 @@ void tools::generate_sparse_initial_indexes_matrix_and_vector_b(
 
         std::vector<double> values = generate_row(
                     gen, selected_positions, bb, i, MATRIX_SIZE, non_zero_count,
-                    points, equation);
+                    points, equation, s);
 
         size_t idx = 0;
 

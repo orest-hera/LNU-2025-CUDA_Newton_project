@@ -19,6 +19,7 @@ public:
         unsigned size{0};
         unsigned nnz{0};
         unsigned seed{0};
+        bool rand_sparse_pos{false};
         bool is_cpu{false};
         bool is_cublas{false};
         bool is_cudss{false};

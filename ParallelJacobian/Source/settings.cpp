@@ -26,6 +26,7 @@ Settings::Settings()
         {"--redirect-out", { parseBool, &settings.redirect_out }},
         {"--report-subdir", { parseBool, &settings.report_subdir }},
         {"--result-path", { parseString, &settings.path }},
+        {"--label", { parseString, &settings.label }}
     };
 }
 

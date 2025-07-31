@@ -133,7 +133,9 @@ void NewtonSolverCUDA::gpu_newton_solve() {
 
         tools::print_intermediate_result(data, iterations_count, dx);
 #endif
-        file_op->append_file_data(data->intermediate_results, data->MATRIX_SIZE);
+        file_op->append_file_data(data->intermediate_results, data->MATRIX_SIZE,
+                                  data->nnz_row, iterations_count, "cuBLAS",
+                                  data->settings.label);
     } while (dx > TOLERANCE);
 	file_op->close_file();
 

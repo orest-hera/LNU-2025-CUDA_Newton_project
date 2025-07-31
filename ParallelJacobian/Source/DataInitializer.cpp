@@ -5,15 +5,19 @@
 #include "EditionalTools.h"
 
 const std::string DataInitializer::csv_header =
-"func_t,jcbn_t,delta_t,update_t,matrix_size";
+"func_t,jcbn_t,delta_t,update_t,matrix_size,nnz_row,iter_num,solver,label";
 
 DataInitializer::DataInitializer(int MATRIX_SIZE, int zeros_elements_per_row,
 		int file_name, const Settings::SettingsData& s,
-		int power, bool is_csr) {
+		int power, bool is_csr)
+	: settings{s}
+{
 	this->equation = new Equation(power);
 	this->MATRIX_SIZE = MATRIX_SIZE;
 	this->file_name = file_name;
 	this->zeros_elements_per_row = zeros_elements_per_row;
+
+	nnz_row = MATRIX_SIZE - zeros_elements_per_row;
 
 #ifdef PINNED_MEMORY
 	int x_blocks_count = (MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;

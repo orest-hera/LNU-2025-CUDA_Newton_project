@@ -118,10 +118,9 @@ void NewtonSolverMKLdss::cpu_newton_solve() {
 		data->intermediate_results[3] = std::chrono::duration<double>(end - start).count();
 		tools::print_intermediate_result(data, iterations_count, dx);
 #endif
-		file_op->append_file_data(data->intermediate_results, data->MATRIX_SIZE);
-		//if (iterations_count == 4) {
-		//	break;
-		//}
+        file_op->append_file_data(data->intermediate_results, data->MATRIX_SIZE,
+                                  data->nnz_row, iterations_count, "MKL_DSS",
+                                  data->settings.label);
 	} while (dx > TOLERANCE);
 
 	auto end_total = std::chrono::steady_clock::now();

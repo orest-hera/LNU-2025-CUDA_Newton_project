@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::unique_ptr<FileOperations> file_op = std::make_unique<FileOperations>(s.settings.path);
-    std::string header = "CPU,GPU,cuDSS,MKL_Lapack,MKL_DSS,matrix_size";
+    std::string header = "CPU,GPU,cuDSS,MKL_Lapack,MKL_DSS,matrix_size,label";
     file_op->create_file("total_statistic.csv", 5);
     file_op->append_file_headers(header);
     std::vector<double> row{0,0,0,0,0};
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
         }
 #endif
 
-        file_op->append_file_data(row, size);
+        file_op->append_file_data(row, size, sd.label);
     }
     return 0;
 }

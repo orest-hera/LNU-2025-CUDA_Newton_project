@@ -13,8 +13,10 @@
 
 struct DataInitializer {
 public:
+	const Settings::SettingsData& settings;
 	int file_name;
 	int zeros_elements_per_row;
+	int nnz_row;
 	Equation* equation{ nullptr };
 	int MATRIX_SIZE{ 0 };
 

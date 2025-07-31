@@ -1,7 +1,13 @@
 #include "system-info.h"
 
+#ifdef __linux__
+#include <sys/resource.h>
+#endif
+
 #include <chrono>
 #include <cstdio>
+#include <cstring>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -10,6 +16,11 @@
 #ifdef CFG_SOLVE_CUDA
 #include <cuda_runtime.h>
 #endif
+
+struct MemUsage {
+    long rss{0};
+    long hwm{0};
+};
 
 namespace {
 
@@ -20,6 +31,49 @@ void checkCudaErrors(cudaError_t err)
         throw std::runtime_error(std::string("CUDA Error: ") +
             cudaGetErrorName(err) + ", " + 	cudaGetErrorString(err));
     }
+}
+#endif
+
+#ifdef __linux__
+static double timeval_sec(const struct timeval& tv)
+{
+    return tv.tv_usec * 1e-6 + tv.tv_sec;
+}
+
+bool is_prefix(const std::string& line, const std::string& prefix)
+{
+    return strncmp(line.c_str(), prefix.c_str(), prefix.length()) == 0;
+}
+
+bool get_memory_usage(MemUsage& mem_usage)
+{
+    static const std::string vm_rss = "VmRSS:";
+    static const std::string vm_hwm = "VmHWM:";
+
+    std::ifstream status_file("/proc/self/status");
+
+    if (!status_file.is_open()) {
+        std::cerr << "Error opening /proc/self/status" << std::endl;
+        return false;
+    }
+
+    std::string line;
+    int cnt = 0;
+
+    while (std::getline(status_file, line) && cnt < 2) {
+        if (is_prefix(line, vm_rss)) {
+            sscanf(line.c_str(), "%*s %ld", &mem_usage.rss);
+            cnt++;
+            continue;
+        }
+        if (is_prefix(line, vm_hwm)) {
+            sscanf(line.c_str(), "%*s %ld", &mem_usage.hwm);
+            cnt++;
+            continue;
+        }
+    }
+
+    return cnt == 2;
 }
 #endif
 
@@ -91,3 +145,26 @@ void SystemInfo::dumpDeviceProps(std::ostream& stream) const
     stream << "GPU Cock Rate: " << props.clockRate << " kHz" << std::endl;
 }
 #endif
+
+void SystemInfo::dump_resource_usage(std::ostream& stream) const
+{
+#ifdef __linux__
+    stream << std::endl;
+
+    struct rusage usage;
+
+    getrusage(RUSAGE_SELF, &usage);
+
+    stream << "User CPU time used: " << timeval_sec(usage.ru_utime)
+           << ", Sys CPU time used: " << timeval_sec(usage.ru_stime)
+           << std::endl;
+
+    MemUsage mem;
+    if (!get_memory_usage(mem)) {
+        stream << "Failed to read mem usage" << std::endl;
+    } else {
+        stream << "RSS: " << mem.rss << " kB, Max RSS: " << mem.hwm << " kB" << std::endl;
+    }
+#endif
+    stream << std::endl;
+}

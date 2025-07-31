@@ -9,6 +9,7 @@ public:
     SystemInfo(int argc, char* argv[]);
 
     void dump(std::ostream&) const;
+    void dump_resource_usage(std::ostream&) const;
     std::string getTimeStamp() const;
 
 private:

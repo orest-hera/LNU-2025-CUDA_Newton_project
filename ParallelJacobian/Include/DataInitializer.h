@@ -23,6 +23,8 @@ public:
 		* vector_b_h{ nullptr },
 		* points_check{ nullptr };
 
+	static const std::string csv_header;
+
 #ifdef INTERMEDIATE_RESULTS
 	std::vector<double> intermediate_results;
 #endif

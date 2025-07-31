@@ -95,7 +95,7 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 	std::unique_ptr<FileOperations> file_op = std::make_unique<FileOperations>(settings_.path);
 	std::string file_name = "gpu_cudss_newton_solver_" + std::to_string(data->file_name) + ".csv";
 	file_op->create_file(file_name, 4);
-	file_op->append_file_headers("func_value_t,jacobian_value_t,delta_value_t,update_points_t,matrix_size");
+	file_op->append_file_headers(data->csv_header);
 
 	NewtonSolverGPUFunctions::gpu_dummy_warmup << <1, 32 >> > ();
 	cudaDeviceSynchronize();
@@ -176,8 +176,8 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 #ifdef INTERMEDIATE_RESULTS
 		end = std::chrono::steady_clock::now();
 		data->intermediate_results[3] = std::chrono::duration<double>(end - start).count();
+		tools::print_intermediate_result(data, iterations_count, dx);
 #endif
-		tools::print_intermediate_result(data, iterations_count, dx, true);
 		cudaMemcpy(data->points_d, data->points_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 		file_op->append_file_data(data->intermediate_results, data->MATRIX_SIZE);
 		//if (iterations_count == 4) {

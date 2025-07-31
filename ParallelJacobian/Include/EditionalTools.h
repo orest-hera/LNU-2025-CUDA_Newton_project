@@ -29,5 +29,5 @@ namespace tools {
 	// RESULTS PRINT
 	//
 	void print_solution(DataInitializer* data, int iterations_count);
-	void print_intermediate_result(DataInitializer* data, int iteration_number, double error, bool isCudss = false);
+	void print_intermediate_result(DataInitializer* data, int iteration_number, double error);
 }

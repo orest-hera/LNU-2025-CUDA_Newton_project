@@ -4,6 +4,9 @@
 
 #include "EditionalTools.h"
 
+const std::string DataInitializer::csv_header =
+"func_t,jcbn_t,delta_t,update_t,matrix_size";
+
 DataInitializer::DataInitializer(int MATRIX_SIZE, int zeros_elements_per_row,
 		int file_name, const Settings::SettingsData& s,
 		int power, bool is_csr) {
@@ -33,7 +36,7 @@ DataInitializer::DataInitializer(int MATRIX_SIZE, int zeros_elements_per_row,
 #endif
 
 #ifdef INTERMEDIATE_RESULTS
-    intermediate_results = std::vector<double>(5, 0.0);
+    intermediate_results = std::vector<double>(4, 0.0);
 #endif
 
 #ifdef TOTAL_ELASPED_TIME

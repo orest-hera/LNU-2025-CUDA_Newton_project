@@ -49,8 +49,8 @@ void NewtonSolverCUDA::gpu_newton_solve() {
     int version = prop.major;
     std::unique_ptr<FileOperations> file_op = std::make_unique<FileOperations>(settings_.path);
     std::string file_name = "gpu_newton_solver_" + std::to_string(data->file_name) + ".csv";
-    file_op->create_file(file_name, 5);
-    file_op->append_file_headers("func_value_t,jacobian_value_t,inverse_jacobian_t,delta_value_t,update_points_t,matrix_size");
+    file_op->create_file(file_name, 4);
+    file_op->append_file_headers(data->csv_header);
 
     NewtonSolverGPUFunctions::gpu_dummy_warmup << <1, 32 >> > ();
     cudaDeviceSynchronize();
@@ -106,20 +106,16 @@ void NewtonSolverCUDA::gpu_newton_solve() {
         //cudaMemcpy(data->jacobian_h, data->jacobian_d, data->MATRIX_SIZE * data->MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
 
 #ifdef INTERMEDIATE_RESULTS
-		end = std::chrono::steady_clock::now();
+        end = std::chrono::steady_clock::now();
         data->intermediate_results[1] = std::chrono::duration<double>(end - start).count();
-		start = std::chrono::steady_clock::now();
+        start = std::chrono::steady_clock::now();
 #endif
         gpu_cublasInverse(data);
         cudaDeviceSynchronize();
 #ifdef INTERMEDIATE_RESULTS
-		end = std::chrono::steady_clock::now();
+        end = std::chrono::steady_clock::now();
         data->intermediate_results[2] = std::chrono::duration<double>(end - start).count();
-#endif
-
-#ifdef INTERMEDIATE_RESULTS
-        data->intermediate_results[3] = std::chrono::duration<double>(end - start).count();
-		start = std::chrono::steady_clock::now();
+        start = std::chrono::steady_clock::now();
 #endif
 
         cudaMemcpy(data->funcs_value_h, data->funcs_value_d, data->MATRIX_SIZE * sizeof(double), cudaMemcpyDeviceToHost);
@@ -132,10 +128,10 @@ void NewtonSolverCUDA::gpu_newton_solve() {
         cudaMemcpy(data->points_d, data->points_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 
 #ifdef INTERMEDIATE_RESULTS
-		end = std::chrono::steady_clock::now();
-        data->intermediate_results[4] = std::chrono::duration<double>(end - start).count();
+        end = std::chrono::steady_clock::now();
+        data->intermediate_results[3] = std::chrono::duration<double>(end - start).count();
 
-		tools::print_intermediate_result(data, iterations_count, dx);
+        tools::print_intermediate_result(data, iterations_count, dx);
 #endif
         file_op->append_file_data(data->intermediate_results, data->MATRIX_SIZE);
     } while (dx > TOLERANCE);

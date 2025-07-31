@@ -72,9 +72,20 @@ if(BUILD_CUDA)
 endif() # BUILD_CUDA
 
 if(BUILD_MKL)
+    if(NOT MKL_INTERFACE_FULL)
+        set(MKL_INTERFACE_FULL intel_lp64)
+        message(STATUS "Set MKL intel_lp64 by default")
+    endif()
+
     find_package(MKL REQUIRED)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMKL_ILP64 -DCFG_SOLVE_MKL")
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -DMKL_ILP64 -DCFG_SOLVE_MKL")
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCFG_SOLVE_MKL")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -DCFG_SOLVE_MKL")
+
+    if(MKL_INTERFACE_FULL STREQUAL intel_ilp64)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMKL_ILP64")
+        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -DMKL_ILP64")
+    endif()
 endif()
 
 set(COMMON_SOURCE_FILES
@@ -173,6 +184,7 @@ add_custom_target(gen-version-h
         -DCMAKE_CUDA_COMPILER_VERSION=${CMAKE_CUDA_COMPILER_VERSION}
         -DCMAKE_CXX_COMPILER_VERSION=${CMAKE_CXX_COMPILER_VERSION}
         -DCMAKE_CUDSS_VERSION=${cudss_VERSION}
+        -DMKL_INTERFACE_FULL=${MKL_INTERFACE_FULL}
         -P ${CMAKE_CURRENT_SOURCE_DIR}/gen-version.cmake
 )
 add_dependencies(my_common_lib gen-version-h)

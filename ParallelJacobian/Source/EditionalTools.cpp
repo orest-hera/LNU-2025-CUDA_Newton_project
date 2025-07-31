@@ -251,16 +251,20 @@ void tools::print_solution(DataInitializer* data, int iterations_count = 0) {
     bool isCorrect = true;
 
     for (int i = 0; i < data->MATRIX_SIZE; i++) {
-        if (std::abs(data->points_h[i] - data->points_check[i]) > 1e-5) {
-            isCorrect = false;
+        // false if any number is NaN
+        if (std::abs(data->points_h[i] - data->points_check[i]) < 1e-5) {
+            continue;
         }
+
+        isCorrect = false;
+        break;
     }
 
     if (isCorrect) {
         std::cout << "Solution is correct!" << "\n";
     }
     else {
-        std::cout << "Solution is incorrect!" << "\n";
+        std::cout << "Failed: incorrect solution!" << "\n";
     }
 }
 

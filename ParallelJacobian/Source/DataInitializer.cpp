@@ -5,7 +5,7 @@
 #include "EditionalTools.h"
 
 const std::string DataInitializer::csv_header =
-"func_t,jcbn_t,delta_t,update_t,matrix_size,nnz_row,iter_num,solver,label";
+"func_t,jcbn_t,delta_t,update_t,matrix_size,nnz_row,iter_num,mem_rss_max,mem_gpu_max,solver,label";
 
 DataInitializer::DataInitializer(int MATRIX_SIZE, int zeros_elements_per_row,
 		int file_name, const Settings::SettingsData& s,

@@ -118,9 +118,11 @@ void NewtonSolverMKLdss::cpu_newton_solve() {
 		data->intermediate_results[3] = std::chrono::duration<double>(end - start).count();
 		tools::print_intermediate_result(data, iterations_count, dx);
 #endif
-        file_op->append_file_data(data->intermediate_results, data->MATRIX_SIZE,
-                                  data->nnz_row, iterations_count, "MKL_DSS",
-                                  data->settings.label);
+		file_op->append_file_data(
+				data->intermediate_results, data->MATRIX_SIZE,
+				data->nnz_row, iterations_count,
+				sinfo_.mem_rss_usage_get(), sinfo_.gpu_mem_usage_get(),
+				"MKL_DSS", data->settings.label);
 	} while (dx > TOLERANCE);
 
 	auto end_total = std::chrono::steady_clock::now();
@@ -129,8 +131,9 @@ void NewtonSolverMKLdss::cpu_newton_solve() {
 }
 
 NewtonSolverMKLdss::NewtonSolverMKLdss(DataInitializerMKLdss* data,
-		const Settings::SettingsData& settings)
+		const Settings::SettingsData& settings, SystemInfo& sinfo)
 	: settings_{settings}
+	, sinfo_{sinfo}
 {
 	this->data = data;
 }

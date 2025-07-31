@@ -18,6 +18,12 @@ public:
     void dump_resource_usage(std::ostream&) const;
     std::string getTimeStamp() const;
 
+    // return memory in kB units
+    size_t gpu_mem_usage_get();
+    size_t gpu_mem_usage_max_get();
+    static size_t mem_rss_usage_get();
+    static size_t mem_rss_max_usage_get();
+
 private:
 #ifdef CFG_SOLVE_CUDA
     void dumpDeviceProps(std::ostream& stream) const;

@@ -12,8 +12,9 @@
 #include <DataInitializerCuDSS.h>
 
 NewtonSolverCuDSS::NewtonSolverCuDSS(DataInitializerCuDSS* data,
-		const Settings::SettingsData& settings)
+		const Settings::SettingsData& settings, SystemInfo& sinfo)
 	: settings_{settings}
+	, sinfo_{sinfo}
 {
 	this->data = data;
 }
@@ -180,9 +181,11 @@ void NewtonSolverCuDSS::gpu_newton_solver_cudss() {
 #endif
 		cudaMemcpy(data->points_d, data->points_h, data->MATRIX_SIZE * sizeof(double), cudaMemcpyHostToDevice);
 
-        file_op->append_file_data(data->intermediate_results, data->MATRIX_SIZE,
-                                  data->nnz_row, iterations_count, "cuDSS",
-                                  data->settings.label);
+		file_op->append_file_data(
+				data->intermediate_results, data->MATRIX_SIZE,
+				data->nnz_row, iterations_count,
+				sinfo_.mem_rss_usage_get(), sinfo_.gpu_mem_usage_get(),
+				"cuDSS", data->settings.label);
 	} while (dx > TOLERANCE);
 
 	auto end_total = std::chrono::steady_clock::now();

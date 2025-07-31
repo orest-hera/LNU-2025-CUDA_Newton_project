@@ -17,10 +17,11 @@ public:
 	void create_file(std::string file_name, int number_of_columns);
 	void close_file();
 	void append_file_data(
-			const std::vector<double>& row, int MATRIX_SIZE,
-			std::string label);
+			const std::vector<double>& row, int MATRIX_SIZE, size_t mem_rss,
+			size_t mem_gpu, std::string label);
 	void append_file_data(
 			const std::vector<double>& row, int MATRIX_SIZE, int nnz_row,
-			int iter_num, std::string solver, std::string label);
+			int iter_num, size_t mem_rss, size_t mem_gpu, std::string solver,
+			std::string label);
 	void append_file_headers(std::string headers);
 };

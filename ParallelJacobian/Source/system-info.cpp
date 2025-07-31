@@ -185,3 +185,47 @@ void SystemInfo::dump_resource_usage(std::ostream& stream) const
 
     stream << std::endl;
 }
+
+size_t SystemInfo::gpu_mem_usage_get()
+{
+#ifdef CFG_SOLVE_CUDA
+    return gpu_mon_->mem_usage_get();
+#else
+    return 0;
+#endif
+}
+
+size_t SystemInfo::gpu_mem_usage_max_get()
+{
+#ifdef CFG_SOLVE_CUDA
+    return gpu_mon_->mem_usage_max_get();
+#else
+    return 0;
+#endif
+}
+
+size_t SystemInfo::mem_rss_usage_get()
+{
+#ifdef __linux__
+    MemUsage mem;
+    if (!get_memory_usage(mem))
+        return 0;
+
+    return mem.rss;
+#else
+    return 0;
+#endif
+}
+
+size_t SystemInfo::mem_rss_max_usage_get()
+{
+#ifdef __linux__
+    MemUsage mem;
+    if (!get_memory_usage(mem))
+        return 0;
+
+    return mem.hwm;
+#else
+    return 0;
+#endif
+}

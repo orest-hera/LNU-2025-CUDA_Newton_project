@@ -10,8 +10,9 @@
 #include <chrono>
 
 NewtonSolverCUDA::NewtonSolverCUDA(DataInitializerCUDA* dataInitializer,
-        const Settings::SettingsData& settings)
+        const Settings::SettingsData& settings, SystemInfo& sinfo)
     : settings_{settings}
+    , sinfo_{sinfo}
 {
 	data = dataInitializer;
 }
@@ -133,9 +134,11 @@ void NewtonSolverCUDA::gpu_newton_solve() {
 
         tools::print_intermediate_result(data, iterations_count, dx);
 #endif
-        file_op->append_file_data(data->intermediate_results, data->MATRIX_SIZE,
-                                  data->nnz_row, iterations_count, "cuBLAS",
-                                  data->settings.label);
+        file_op->append_file_data(
+                    data->intermediate_results, data->MATRIX_SIZE,
+                    data->nnz_row, iterations_count,
+                    sinfo_.mem_rss_usage_get(), sinfo_.gpu_mem_usage_get(),
+                    "cuBLAS", data->settings.label);
     } while (dx > TOLERANCE);
 	file_op->close_file();
 

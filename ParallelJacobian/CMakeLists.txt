@@ -94,6 +94,7 @@ if(BUILD_CUDA)
     list(APPEND COMMON_SOURCE_FILES
         "${CMAKE_SOURCE_DIR}/Source/DataInitializerCuDSS.cpp"
         "${CMAKE_SOURCE_DIR}/Source/DataInitializerCUDA.cpp"
+        "${CMAKE_SOURCE_DIR}/Source/gpu-monitor.cpp"
         "${CMAKE_SOURCE_DIR}/Source/NewtonSolverCUDA.cu"
         "${CMAKE_SOURCE_DIR}/Source/NewtonSolverCuDSS.cu"
         "${CMAKE_SOURCE_DIR}/Source/NewtonSolverGPUFunctions.cu"

@@ -17,6 +17,10 @@
 #include <cuda_runtime.h>
 #endif
 
+#ifdef CFG_SOLVE_CUDA
+#include "gpu-monitor.h"
+#endif
+
 struct MemUsage {
     long rss{0};
     long hwm{0};
@@ -80,6 +84,9 @@ bool get_memory_usage(MemUsage& mem_usage)
 }
 
 SystemInfo::SystemInfo(int argc, char* argv[])
+#ifdef CFG_SOLVE_CUDA
+    : gpu_mon_{std::make_unique<GpuMonitor>()}
+#endif
 {
     for (int i = 0; i < argc; ++i) {
         if (i !=0)
@@ -101,6 +108,10 @@ SystemInfo::SystemInfo(int argc, char* argv[])
        << std::setw(3) << ms;
 
     timestamp_ = ss.str();
+}
+
+SystemInfo::~SystemInfo()
+{
 }
 
 std::string SystemInfo::getTimeStamp() const
@@ -166,5 +177,11 @@ void SystemInfo::dump_resource_usage(std::ostream& stream) const
         stream << "RSS: " << mem.rss << " kB, Max RSS: " << mem.hwm << " kB" << std::endl;
     }
 #endif
+#ifdef CFG_SOLVE_CUDA
+    stream << "GPU Mem Usage: " << gpu_mon_->mem_usage_get()
+           << " kB, GPU Max Mem Usage: " << gpu_mon_->mem_usage_max_get()
+           << " kB" << std::endl;
+#endif
+
     stream << std::endl;
 }

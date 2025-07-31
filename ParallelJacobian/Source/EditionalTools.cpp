@@ -58,10 +58,20 @@ static std::vector<int> generate_random_pos(
     return p;
 }
 
+static std::vector<int> generate_dense_pos(int size)
+{
+    std::vector<int> p(size);
+    std::iota (std::begin(p), std::end(p), 0);
+    return p;
+}
+
 static std::vector<int> generate_pos(
         int row, int nnz, int size, std::mt19937& gen,
         const Settings::SettingsData& s)
 {
+    if (nnz == size)
+        return generate_dense_pos(size);
+
     if (s.rand_sparse_pos)
         return generate_random_pos(row, nnz, size, gen);
 

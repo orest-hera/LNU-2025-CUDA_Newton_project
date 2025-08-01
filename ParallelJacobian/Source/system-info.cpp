@@ -26,6 +26,10 @@ struct MemUsage {
     long hwm{0};
 };
 
+#ifdef __linux__
+extern char** environ;
+#endif
+
 namespace {
 
 #ifdef CFG_SOLVE_CUDA
@@ -79,6 +83,21 @@ bool get_memory_usage(MemUsage& mem_usage)
 
     return cnt == 2;
 }
+
+static void dump_env_mkl_omp(std::ostream& stream)
+{
+#define ENV_MKL "MKL_"
+#define ENV_OMP "OMP_"
+
+    for (char** env_var = environ; *env_var != nullptr; ++env_var) {
+        if (strncmp(*env_var, ENV_MKL, sizeof(ENV_MKL) - 1) != 0 &&
+                strncmp(*env_var, ENV_OMP, sizeof(ENV_OMP) - 1) != 0) {
+            continue;
+        }
+
+        stream << *env_var << std::endl;
+    }
+}
 #endif
 
 }
@@ -123,7 +142,10 @@ void SystemInfo::dump(std::ostream& stream) const
 {
     stream << "Launch time: " << timestamp_ << std::endl;
     stream << "Command: " << cmd_ << std::endl;
-
+#ifdef __linux__
+    dump_env_mkl_omp(stream);
+#endif
+    stream << std::endl;
 #ifdef CFG_SOLVE_CUDA
     dumpDeviceProps(stream);
 #endif

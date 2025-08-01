@@ -66,12 +66,13 @@ int main(int argc, char* argv[]) {
 
     std::unique_ptr<FileOperations> file_op = std::make_unique<FileOperations>(s.settings.path);
     std::string header =
-            "CPU,GPU,cuDSS,MKL_Lapack,MKL_DSS,matrix_size,mem_rss_max,mem_gpu_max,label";
+            "CPU,GPU,cuDSS,MKL_Lapack,MKL_DSS,nnz_row,mem_rss_max,mem_gpu_max,label";
     file_op->create_file("total_statistic.csv", 5);
     file_op->append_file_headers(header);
     std::vector<double> row{0,0,0,0,0};
 
-    for (unsigned zeros = zeros_per_row_min; zeros <= zeros_per_row_max; zeros += stride) {
+    for (unsigned zeros = zeros_per_row_max; zeros >= zeros_per_row_min; zeros -= stride) {
+        unsigned nnz_row = matrix_size - zeros;
 
         //
         // CPU
@@ -80,7 +81,7 @@ int main(int argc, char* argv[]) {
         {
             sinfo.dump_resource_usage(std::cout);
             auto data = std::make_unique<DataInitializerCPU>(
-                        matrix_size, zeros, zeros, sd, power);
+                        matrix_size, zeros, nnz_row, sd, power);
             auto newton_solver = std::make_unique<NewtonSolverCPU>(
                         data.get(), s.settings, sinfo);
             newton_solver->cpu_newton_solve();
@@ -96,7 +97,7 @@ int main(int argc, char* argv[]) {
         {
             sinfo.dump_resource_usage(std::cout);
             auto data2 = std::make_unique<DataInitializerCUDA>(
-                        matrix_size, zeros, zeros, sd, power);
+                        matrix_size, zeros, nnz_row, sd, power);
             auto newton_solver2 = std::make_unique<NewtonSolverCUDA>(
                         data2.get(), s.settings, sinfo);
             newton_solver2->gpu_newton_solve();
@@ -110,7 +111,7 @@ int main(int argc, char* argv[]) {
         {
             sinfo.dump_resource_usage(std::cout);
             auto data3 = std::make_unique<DataInitializerCuDSS>(
-                        matrix_size, zeros, zeros, sd, power);
+                        matrix_size, zeros, nnz_row, sd, power);
             auto cuDssSolver = std::make_unique<NewtonSolverCuDSS>(
                         data3.get(), s.settings, sinfo);
             cuDssSolver->gpu_newton_solver_cudss();
@@ -126,7 +127,7 @@ int main(int argc, char* argv[]) {
         {
             sinfo.dump_resource_usage(std::cout);
             auto data = std::make_unique<DataInitializerMKLlapack>(
-                        matrix_size, zeros, zeros, sd, power);
+                        matrix_size, zeros, nnz_row, sd, power);
             auto mklLapackSolver = std::make_unique<NewtonSolverMKLlapack>(
                         data.get(), s.settings, sinfo);
             mklLapackSolver->cpu_newton_solve();
@@ -141,7 +142,7 @@ int main(int argc, char* argv[]) {
         {
             sinfo.dump_resource_usage(std::cout);
             auto data = std::make_unique<DataInitializerMKLdss>(
-                        matrix_size, zeros, zeros, sd, power);
+                        matrix_size, zeros, nnz_row, sd, power);
             auto mklDssSolver = std::make_unique<NewtonSolverMKLdss>(
                         data.get(), s.settings, sinfo);
             mklDssSolver->cpu_newton_solve();
@@ -150,7 +151,7 @@ int main(int argc, char* argv[]) {
         }
 #endif
 
-        file_op->append_file_data(row, zeros, sinfo.mem_rss_max_usage_get(),
+        file_op->append_file_data(row, nnz_row, sinfo.mem_rss_max_usage_get(),
                                   sinfo.gpu_mem_usage_max_get(), sd.label);
     }
 

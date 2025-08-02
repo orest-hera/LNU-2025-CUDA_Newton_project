@@ -48,12 +48,12 @@ int main(int argc, char* argv[]) {
     sinfo.dump(std::cout);
 
     unsigned matrix_size = s.settings.size != 0 ? s.settings.size : 1000;
-    unsigned zeros_per_row_max = 0;
-    unsigned zeros_per_row_min = 0;
+    int zeros_per_row_max = 0;
+    int zeros_per_row_min = 0;
     unsigned stride = s.settings.stride;
     unsigned power = s.settings.power;
 
-    if (s.settings.nnz != 0 && s.settings.nnz < matrix_size) {
+    if (s.settings.nnz != 0 && s.settings.nnz <= matrix_size) {
         // use only one step
         zeros_per_row_max = matrix_size - s.settings.nnz;
         zeros_per_row_min = matrix_size - s.settings.nnz;
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
     file_op->append_file_headers(header);
     std::vector<double> row(6,0);
 
-    for (unsigned zeros = zeros_per_row_max; zeros >= zeros_per_row_min; zeros -= stride) {
+    for (int zeros = zeros_per_row_max; zeros >= zeros_per_row_min; zeros -= stride) {
         unsigned nnz_row = matrix_size - zeros;
 
         //

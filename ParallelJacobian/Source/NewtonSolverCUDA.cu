@@ -19,7 +19,7 @@ NewtonSolverCUDA::NewtonSolverCUDA(DataInitializerCUDA* dataInitializer,
 
 NewtonSolverCUDA::~NewtonSolverCUDA() {
 }
-void NewtonSolverCUDA::gpu_cublasInverse(DataInitializerCUDA* data) {
+void NewtonSolverCUDA::gpu_cublas_solve(DataInitializerCUDA* data) {
     cublasStatus_t s1 = cublasDgetrfBatched(
                 data->cublasContextHandler, data->MATRIX_SIZE,
                 data->cublas_ajacobian_d, data->MATRIX_SIZE,
@@ -44,18 +44,46 @@ void NewtonSolverCUDA::gpu_cublasInverse(DataInitializerCUDA* data) {
     std::cout << "TRF/TRS status: " << s1 << " " << s2 << " " << s3 << std::endl;
 }
 
+void NewtonSolverCUDA::gpu_cusolver_solve(DataInitializerCUDA* data) {
+    int workspace_size;
+    int n = data->MATRIX_SIZE;
+    cusolverStatus_t s1 = cusolverDnDgetrf_bufferSize(
+                data->cusolverH, n, n, data->jacobian_d, n, &workspace_size);
+
+    if (workspace_size > data->workspace_size) {
+        if (data->workspace_d) {
+            cudaFree(data->workspace_d);
+        }
+        cudaMalloc(reinterpret_cast<void **>(&data->workspace_d),
+                   sizeof(double) * workspace_size);
+        data->workspace_size = workspace_size;
+    }
+
+    cusolverStatus_t s2 = cusolverDnDgetrf(
+                data->cusolverH, n, n, data->jacobian_d, n, data->workspace_d,
+                data->cusolver_pivot, data->cublas_info);
+
+    cusolverStatus_t s3 = cusolverDnDgetrs(
+                data->cusolverH, CUBLAS_OP_N, n, 1, data->jacobian_d, n,
+                data->cusolver_pivot, data->funcs_value_d, n,
+                data->cublas_info);
+
+    std::cout << "cuSOLVER status: " << s1 << " " << s2 << " " << s3 << std::endl;
+}
+
 void NewtonSolverCUDA::gpu_newton_solve() {
     cudaDeviceProp prop;
     cudaGetDeviceProperties(&prop, 0);
     int version = prop.major;
     std::unique_ptr<FileOperations> file_op = std::make_unique<FileOperations>(settings_.path);
-    std::string file_name = "gpu_newton_solver_" + std::to_string(data->file_name) + ".csv";
+    std::string file_name = data->is_cublas ? "gpu_cublas_" : "gpu_cusolver_";
+    file_name = file_name + std::to_string(data->file_name) + ".csv";
     file_op->create_file(file_name, 4);
     file_op->append_file_headers(data->csv_header);
 
     NewtonSolverGPUFunctions::gpu_dummy_warmup << <1, 32 >> > ();
     cudaDeviceSynchronize();
-    std::cout << "GPU Newton solver\n";
+    std::cout << (data->is_cublas ? "GPU cuBLAS\n" : "GPU cuSOLVER\n");
     int x_blocks_count = (data->MATRIX_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
     int iterations_count = 0;
     double dx = 0;
@@ -111,7 +139,11 @@ void NewtonSolverCUDA::gpu_newton_solve() {
         data->intermediate_results[1] = std::chrono::duration<double>(end - start).count();
         start = std::chrono::steady_clock::now();
 #endif
-        gpu_cublasInverse(data);
+        if (data->is_cublas) {
+            gpu_cublas_solve(data);
+        } else {
+            gpu_cusolver_solve(data);
+        }
         cudaDeviceSynchronize();
 #ifdef INTERMEDIATE_RESULTS
         end = std::chrono::steady_clock::now();
@@ -138,7 +170,8 @@ void NewtonSolverCUDA::gpu_newton_solve() {
                     data->intermediate_results, data->MATRIX_SIZE,
                     data->nnz_row, iterations_count,
                     sinfo_.mem_rss_usage_get(), sinfo_.gpu_mem_usage_get(),
-                    "cuBLAS", data->settings.label);
+                    data->is_cublas ? "cuBLAS" : "cuSOLVER",
+                    data->settings.label);
     } while (dx > TOLERANCE);
 	file_op->close_file();
 

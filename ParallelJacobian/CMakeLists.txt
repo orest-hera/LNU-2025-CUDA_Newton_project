@@ -147,8 +147,8 @@ if(BUILD_CUDA)
         message(STATUS "Setting default CUDA Architectures: ${CUDA_ARCHITECTURES}")
     endif()
 
-    target_link_libraries(ParallelJacobian_DimensionStudy PRIVATE cudss cublas)
-    target_link_libraries(ParallelJacobian_SparsityStudy PRIVATE cudss cublas)
+    target_link_libraries(ParallelJacobian_DimensionStudy PRIVATE cudss cublas cusolver)
+    target_link_libraries(ParallelJacobian_SparsityStudy PRIVATE cudss cublas cusolver)
 
     set_target_properties(ParallelJacobian_DimensionStudy ParallelJacobian_SparsityStudy my_common_lib PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON # Generally good practice for large CUDA projects

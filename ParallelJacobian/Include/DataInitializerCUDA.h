@@ -1,15 +1,22 @@
 #pragma once
 
-#include "cublas_v2.h"
+#include <cublas_v2.h>
+#include <cusolverDn.h>
 
 #include "DataInitializer.h"
 
 class DataInitializerCUDA : public DataInitializer
 {
 public:
-	cublasHandle_t cublasContextHandler;
-	int* cublas_pivot{ nullptr }, * cublas_info{ nullptr };
-	double** cublas_ajacobian_d{ nullptr }, ** cublas_afunc_values_d{ nullptr };
+	bool is_cublas { false };
+	cublasHandle_t cublasContextHandler { nullptr};
+	cusolverDnHandle_t cusolverH{ nullptr };
+	int* cusolver_pivot{ nullptr };
+	int* cublas_info{ nullptr };
+	double** cublas_ajacobian_d{ nullptr };
+	double** cublas_afunc_values_d{ nullptr };
+	double *workspace_d{ nullptr };
+	int workspace_size{ 0 };
 
 	double* intermediate_funcs_value_h{ nullptr },
 		* delta_h{ nullptr },
@@ -23,6 +30,7 @@ public:
 		* funcs_value_d{ nullptr };
 
 	DataInitializerCUDA(int MATRIX_SIZE, int zeros_elements_per_row,
-			int file_name, const Settings::SettingsData& s, int power);
+			int file_name, bool is_cublas,
+			const Settings::SettingsData& s, int power);
 	~DataInitializerCUDA();
 };

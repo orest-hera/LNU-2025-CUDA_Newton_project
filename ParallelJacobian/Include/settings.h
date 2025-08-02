@@ -23,6 +23,7 @@ public:
         bool is_cpu{false};
         bool is_cublas{false};
         bool is_cudss{false};
+        bool is_cusolver{false};
         bool is_mkl_dss{false};
         bool is_mkl_lapack{false};
         std::string label{"none"};

@@ -10,6 +10,7 @@ Settings::Settings()
 #ifdef CFG_SOLVE_CUDA
         {"--cublas", { parseBool, &settings.is_cublas }},
         {"--cudss", { parseBool, &settings.is_cudss }},
+        {"--cusolver", { parseBool, &settings.is_cusolver }},
 #endif
 #ifdef CFG_SOLVE_MKL
         {"--mkl-dss", { parseBool, &settings.is_mkl_dss }},
@@ -66,10 +67,12 @@ bool Settings::parse(int argc, char* argv[])
     }
 
     if (!settings.is_cpu && !settings.is_cublas && !settings.is_cudss &&
-            !settings.is_mkl_dss && !settings.is_mkl_lapack) {
+            !settings.is_cusolver && !settings.is_mkl_dss &&
+            !settings.is_mkl_lapack) {
         settings.is_cpu = true;
         settings.is_cublas = true;
         settings.is_cudss = true;
+        settings.is_cusolver = true;
         settings.is_mkl_dss = true;
         settings.is_mkl_lapack = true;
     }

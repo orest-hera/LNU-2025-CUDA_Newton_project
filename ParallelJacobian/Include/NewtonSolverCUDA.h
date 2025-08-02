@@ -15,6 +15,7 @@ public:
 			const Settings::SettingsData& settings, SystemInfo& sinfo);
 	~NewtonSolverCUDA();
 
-	void gpu_cublasInverse(DataInitializerCUDA* data);
+	void gpu_cublas_solve(DataInitializerCUDA* data);
+	void gpu_cusolver_solve(DataInitializerCUDA* data);
 	void gpu_newton_solve();
 };

@@ -174,6 +174,9 @@ void SystemInfo::dumpDeviceProps(std::ostream& stream) const
         props.totalGlobalMem, props.memoryBusWidth, props.memoryClockRate);
     stream << buf << std::endl;
 
+    stream << "Free memory: " << gpu_mon_->mem_initial_get() << " kB"
+           << std::endl;
+
     stream << "MultiProcessorCount: " << props.multiProcessorCount << std::endl;
     stream << "GPU Cock Rate: " << props.clockRate << " kHz" << std::endl;
 }

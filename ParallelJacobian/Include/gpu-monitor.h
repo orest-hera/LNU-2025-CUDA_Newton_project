@@ -7,6 +7,9 @@ class GpuMonitor
 public:
     GpuMonitor();
 
+    // return memory in kB units
+    size_t mem_initial_get() const;
+
     // return difference from initial free memory
     size_t mem_usage_get();
     size_t mem_usage_max_get() const;

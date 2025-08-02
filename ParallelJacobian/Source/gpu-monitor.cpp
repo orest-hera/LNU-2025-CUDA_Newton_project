@@ -22,6 +22,10 @@ GpuMonitor::GpuMonitor()
     free_base_memory_ = gpu_free_mem_get();
 }
 
+size_t GpuMonitor::mem_initial_get() const
+{
+    return free_base_memory_;
+}
 
 size_t GpuMonitor::mem_usage_get()
 {

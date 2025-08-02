@@ -18,9 +18,7 @@ public:
 		* indexes_d{ nullptr },
 		* points_d{ nullptr },
 		* intermediate_funcs_value_d{ nullptr },
-		* vector_b_d{ nullptr },
 		* jacobian_d{ nullptr },
-		* inverse_jacobian_d{ nullptr },
 		* delta_d{ nullptr },
 		* funcs_value_d{ nullptr };
 

@@ -11,10 +11,8 @@ DataInitializerCUDA::DataInitializerCUDA(
 	cudaMalloc((void**)&indexes_d, MATRIX_SIZE * MATRIX_SIZE * sizeof(double));
 	cudaMalloc((void**)&intermediate_funcs_value_d, x_blocks_count * MATRIX_SIZE * sizeof(double));
 	cudaMalloc((void**)&jacobian_d, MATRIX_SIZE * MATRIX_SIZE * sizeof(double));
-	cudaMalloc((void**)&inverse_jacobian_d, MATRIX_SIZE * MATRIX_SIZE * sizeof(double));
 	cudaMalloc((void**)&delta_d, x_blocks_count * MATRIX_SIZE * sizeof(double));
 	cudaMalloc((void**)&funcs_value_d, MATRIX_SIZE * sizeof(double));
-	cudaMalloc((void**)&vector_b_d, MATRIX_SIZE * sizeof(double));
 	cudaMalloc((void**)&cublas_pivot, MATRIX_SIZE * sizeof(int));
 	cudaMalloc((void**)&cublas_info, sizeof(int));
 	cudaMalloc((void**)&cublas_ajacobian_d, sizeof(double*));
@@ -33,10 +31,8 @@ DataInitializerCUDA::~DataInitializerCUDA() {
 	cudaFree(indexes_d);
 	cudaFree(intermediate_funcs_value_d);
 	cudaFree(jacobian_d);
-	cudaFree(inverse_jacobian_d);
 	cudaFree(delta_d);
 	cudaFree(funcs_value_d);
-	cudaFree(vector_b_d);
 	cudaFree(cublas_pivot);
 	cudaFree(cublas_info);
 	cudaFree(cublas_ajacobian_d);
